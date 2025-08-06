@@ -14,7 +14,7 @@ COUP_DIE = Dice([
     DiceFace("Transfer Country"),
     DiceFace("Target Loses 10% PP"),
     DiceFace("Roll Classified Docs"),
-    DiceFace("Failed Coup"),
+    DiceFace("Failed Coup (No Effect)"),
     DiceFace("+1 War Power"),
 ])
 
@@ -282,7 +282,9 @@ class GameState:
         def _on_result(idx: int, label: str) -> None:
             match idx:
                 case 0:
-                    self.start_war(actor, target)
+                    #Block the rare case Nicaragua is rolling on itself from Current Event Card
+                    if actor != target:
+                        self.start_war(actor, target)
                 case 1:  
                     target.war_power -= 2
                 case 2:  

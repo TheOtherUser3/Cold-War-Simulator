@@ -33,13 +33,13 @@
     "title": "Falklands War",
     "description": "Argentina claims dominion over the Falkland Islands nearby in the Atlantic Ocean. The UK, under the leadership of PM Margaret Thatcher, denied Argentina from claiming sovereignty of the British territory. Intense naval and land battles led to more than 900 deaths. The event strengthened US-UK relations and demonstrated Western military dominance. The event was also carefully studied by the USSR.",
     "effects": [
-    {"type": "pp", "country": "UK", "delta": 100},
-    {"type": "war_outcome", "country": "UK"},
+    {"type": "pp", "country": "United Kingdom", "delta": 100},
+    {"type": "war_outcome", "actor": "United Kingdom", "target": "Argentina"},
     {"type": "pp", "country": "USA", "delta": 50},
     {"type": "pp", "country": "USSR", "delta": 25},
     { "type": "percent_pp", "country": "Argentina",   "percent": -0.5 }
     ],
-    "effects_text": "UK gains 100 PP.\nUK rolls the War Outcome die.\nUS gains 50 PP.\nUSSR gains 25 PP.\nArgentina loses 50% of current PP.",
+    "effects_text": "United Kingdom gains 100 PP.\nUnited Kingdom rolls the War Outcome die on Argentina.\nUS gains 50 PP.\nUSSR gains 25 PP.\nArgentina loses 50% of current PP.",
     "button": "All of that over a pile of rocks?",
     "image" : "3.jpg"
     },
@@ -119,12 +119,12 @@
     "effects": [
     {"type": "pp", "country": "Egypt", "delta": 150},
     {"type": "pp", "country": "Israel", "delta": -25},
-    {"type": "pp", "country": "UK", "delta": -200},
+    {"type": "pp", "country": "United Kingdom", "delta": -200},
     {"type": "pp", "country": "France", "delta": -50},
     {"type": "pp", "country": "USSR", "delta": 25},
     {"type": "bloc_pp", "bloc": "NATO", "delta": -10},
     {"type": "bloc_pp", "bloc": "NATO", "delta": 10},
-    {"type": "destabilize", "actor": "Egypt", "target": "UK"}
+    {"type": "destabilize", "actor": "Egypt", "target": "United Kingdom"}
     ],
     "effects_text": "Egypt gains 150 PP.\nIsrael loses 25 PP.\nUnited Kingdom loses 200 PP.\nFrance loses 50 PP.\nAll other NATO members lose 10 PP.\nUSSR gains 25 PP.\nWarsaw Pact members gain 10 PP.\nEgypt rolls the Destabilize die with the UK as its target.",
     "button": "The British Empire Unravels",
@@ -185,11 +185,11 @@
     {"type": "percent_pp", "country": "USSR", "percent": -0.3},
     {"type": "pp", "country": "Afghanistan", "delta": 200},
     {"type": "pp", "country": "USA", "delta": 100},
-    {"type": "free_espionage", "actor": "USA", "target": "USSR"},
+    {"type": "espionage", "actor": "USA", "target": "USSR"},
     {"type": "bloc_member_vote", "from_bloc": "Warsaw", "to_bloc": "Non-Aligned"},
     {"type": "destabilize", "actor": "Afghanistan", "target": "USSR"}
     ],
-    "effects_text": "USSR loses 30% of current PP.\nAfghanistan gains 200 PP.\nUS gains100 PP.\nUS gains free successful espionage.\nWarsaw Pact loses one of its member countries to the Non-Aligned (Warsaw Pact votes).\nAfghanistan rolls the Destabilize die with the USSR as the target.",
+    "effects_text": "USSR loses 30% of current PP.\nAfghanistan gains 200 PP.\nUS gains100 PP.\nUS gains free successful espionage, and rolls the espionage die on the USSR.\nWarsaw Pact loses one of its member countries to the Non-Aligned (Warsaw Pact votes).\nAfghanistan rolls the Destabilize die with the USSR as the target.",
     "button": "The Red Army Bleeds",
     "image" : "13.jpg"
     },
@@ -284,12 +284,12 @@
     "title": "Vietnam War",
     "description": "France lost colonial control over Vietnam in the First Indochina War. In response, the North Vietnamese, backed by the USSR and China, made major advancements to take over the entire country. The USA and other anti-Communist countries ramped up the South Vietnamese war effort by putting their own boots on the ground. Even with increased manpower and firepower on the side of South Vietnam, the North Vietnamese eventually took the southern Capitol. Surrounding countries of Laos and Cambodia would also fall to Communism after the war. Throughout the war, American public opinion slowly and steadily waned; making Vietnam a massively unpopular war. The loss of Vietnam is arguably the most embarrassing military event of the USA's history.",
     "effects": [
-    {"type": "war_outcome", "country": "Vietnam"},
+    {"type": "war_outcome", "actor": "Vietnam", "target": "USA"},
     {"type": "pp", "country": "USSR", "delta": 100},
     {"type": "pp", "country": "China", "delta": 50},
     {"type": "pp", "country": "USA", "delta": -300}
     ],
-    "effects_text": "Vietnam rolls the War Outcome die.\nUSSR gains 100 PP.\nChina gains 50 PP\nUSA loses 300 PP.",
+    "effects_text": "Vietnam rolls the War Outcome die on the USA.\nUSSR gains 100 PP.\nChina gains 50 PP\nUSA loses 300 PP.",
     "button": "Quagmire in the Jungle",
     "image" : "20.jpg"
     },
@@ -304,9 +304,9 @@
     {"type": "pp", "country": "USSR", "delta": 100},
     {"type": "pp", "country": "USA", "delta": 100},
     {"type": "percent_pp", "country": "South Korea", "percent": -0.5},
-    {"type": "war_outcome", "country": "North Korea"}
+    {"type": "war_outcome", "actor": "North Korea", "target": "South Korea"}
     ],
-    "effects_text": "North Korea gains 150 PP.\nChina gains 50 PP\nUSSR gains 100 PP\nUSA loses 100 PP\nSouth Korea loses 50% of current PP\nNorth Korea rolls the War Outcome die.",
+    "effects_text": "North Korea gains 150 PP.\nChina gains 50 PP\nUSSR gains 100 PP\nUSA loses 100 PP\nSouth Korea loses 50% of current PP\nNorth Korea rolls the War Outcome die on South Korea.",
     "button": "The Frozen War",
     "image" : "21.jpg"
     },
@@ -362,7 +362,7 @@
     {"type": "pp", "country": "South Africa", "delta": 25},
     {"type": "pp", "country": "USSR", "delta": 50},
     {"type": "pp", "country": "Cuba", "delta": 25},
-    {"type": "war_outcome", "country": "Cuba"}
+    {"type": "war_outcome", "actor": "Cuba", "target": "USA"}
     ],
     "effects_text": "USA gain 50 PP.\nSouth Africa gain 25 PP\nUSSR gain 50 PP\nCuba gain 25 PP\nCuba rolls the War Outcome die",
     "button": "Fire in the Heart of Africa",
@@ -373,10 +373,10 @@
     "title": "Nicaraguan Revolution",
     "description": "The USSR-backed Sandinistas were a Marxist Communist revolutionary group that overthrew the USA-backed Somoza dictatorship whom were in control of Nicaragua. The Sandinistas were successful in overthrowing the Somoza family and it became an embarrassment for the USA as Nicaragua is well within the American sphere of influence. For the next decade, the USA would then back the Contra rebels through the CIA. The war finally ended with the conclusion of the Iran-Contra scandal that was uncovered in 1986, bringing international scandal to the Reagan administration and leading to a negotiated end to the conflict.",
     "effects": [
-    {"type": "coup", "country": "USSR"},
+    {"type": "coup", "actor": "USSR", "target": "Nicaragua"},
     {"type": "pp", "country": "USSR", "delta": 100},
     {"type": "percent_pp", "country": "USA", "percent": -0.1},
-    {"type": "coup", "country": "Nicaragua"},
+    {"type": "coup", "actor": "Nicaragua", "target": "Nicaragua"},
     {"type": "pp", "country": "Nicaragua", "delta": 75}
     ],
     "effects_text": "USSR rolls the Coup d'Etat die.\nUSSR gains 100 PP.\nUSA loses 10% of current PP.\nNicaragua rolls the Coup d'Etat die.\nNicaragua gains 75 PP.",
@@ -451,7 +451,7 @@
     "effects": [
     {"type": "defcon", "delta": -1},
     {"type": "flip_coin_defcon","heads_delta": 2, "tails_delta": 0},
-    {"type": "destabilize", "country": "USA"}
+    {"type": "destabilize", "actor": "USA", "target": "USSR"}
     ],
     "effects_text": "DEFCON lowers one level.\nUSA, flip a coin, if it is heads, DEFCON raises two levels. If it is tails, the DEFCON remains the same.\nUSA rolls the Destabilize die.",
     "button": "Hold on - is the other side mobilizing?",
@@ -462,11 +462,11 @@
     "title": "Iranian Coup d'Etat",
     "description": "The USA and UK employed a coup d'etat against the Mohammad Mosaddegh regime as the Mosaddegh government was attempting to audit British oil companies operating in Iran and there was a strong movement to nationalize the oil industry. The CIA staged paid 'protestors' to drum up an overthrow of the Mosaddegh regime in favor of the Shah (king) Mohammad Reza. Shah Reza was supported and held up by the CIA and Mosaddegh was arrested, and later sentenced to death, though was spared by the Shah with a pardon.",
     "effects": [
-    {"type": "coup", "country": "USA"},
-    {"type": "coup", "country": "UK"},
+    {"type": "coup", "actor": "USA", "target": "Iran"},
+    {"type": "coup", "actor": "United Kingdom", "target": "Iran"},
     {"type": "percent_pp", "country": "Iran", "percent": -0.1}
     ],
-    "effects_text": "UK roll the Coup d'Etat die.\nUSA rolls the Coup d'Etat die\nIran loses 10% PP.",
+    "effects_text": "United Kingdom roll the Coup d'Etat die.\nUSA rolls the Coup d'Etat die\nIran loses 10% PP.",
     "button": "They did what for oil?",
     "image" : "30.jpg"
     },
@@ -480,11 +480,11 @@
     {"type": "pp", "country": "India", "delta": 100},
     {"type": "pp", "country": "China", "delta": -25},
     {"type": "percent_pp", "country": "Pakistan", "percent": -0.25},
-    {"type": "classified_documents", "actor": "Pakistan", "target":""},
+    {"type": "classified_documents", "actor": "Pakistan", "target":"United Kingdom"},
     {"type": "war_outcome", "actor": "India", "target": "Pakistan"},
     {"type": "defcon", "delta": -1}
     ],
-    "effects_text": "USSR gains 50 PP.\nIndia gains 100 PP.\nChina loses 25 PP.\nPakistan loses 25% of current PP.\nPakistan rolls the Classified Documents die on the Netherlands.\nIndia rolls the War Outcome die on Pakistan.\nDEFCON lowers 1 level.",
+    "effects_text": "USSR gains 50 PP.\nIndia gains 100 PP.\nChina loses 25 PP.\nPakistan loses 25% of current PP.\nPakistan rolls the Classified Documents die on the UK.\nIndia rolls the War Outcome die on Pakistan.\nDEFCON lowers 1 level.",
     "button": "A Nation is Born",
     "image" : "31.jpg"
     },
