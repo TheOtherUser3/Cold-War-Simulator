@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+.spyderproject
+.spyproject
+.DS_Store
+*.log
+env/
+venv/
+.idea/
+.vscode/
+.pytest_cache/
+NOTES.txt

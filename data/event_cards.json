@@ -1,0 +1,507 @@
+[
+    {
+        "year": 1945,
+        "title": "The First Nuclear Bombs",
+        "description": "The United States became the first and only civilization in the history of the world to detonate nuclear weapons on a human population. The citizens of Hiroshima and Nagasaki witnessed the devastating effects of such weaponry. Robert Oppenheimer recalled a Hindu proverb:",
+        "effects": [
+        {"type": "discount", "country": "USA", "subject": "arms_race", "tier": 1, "multiplier": 0.5},
+        {"type": "pp", "country": "USA", "delta": 200},
+        {"type": "destabilize", "actor": "USA", "target": "USSR"},
+        {"type": "bloc_pp", "bloc": "NATO", "delta": 50}
+        ],
+        "effects_text": "USA can purchase the first tier of the Arms race for half cost if not already purchased.\nUSA gain 200 PP.\nUSA rolls the Destabilize die with the USSR as the target\nOther NATO members gain 50 PP each.",
+        "button": "Now I am become Death, the destroyer of worlds.",
+        "image" : "1.jpg"
+    },
+    {
+        "start_year": 1985,
+        "end_year": 1991,
+        "title": "Perestroika and Glasnost",
+        "description": "Soviet leader Mikhail Gorbachev initiates policies to “westernize” portions of the Soviet economy. These policies also aimed at establishing more transparency of Soviet government activities. This eased tensions between NATO and the Warsaw Pact significantly and was a sign that peace could be brokered.",
+        "effects": [
+        {"type": "bloc_pp", "bloc": "NATO", "delta": 100},
+        {"type": "bloc_pp", "bloc": "Warsaw", "delta": 100},
+        {"type": "defcon", "delta": 1},
+        { "type": "percent_pp", "bloc": "Non-Aligned", "percent": 0.30 }
+        ],
+        "effects_text": "DEFCON raises one level.\nNATO and Warsaw Pact members gain 100 PP.\nNon-Aligned members gain 30% of their current PP.",
+        "button": "Embrace Glasnost!",
+        "image" : "2.jpg"
+    },
+    {
+    "year": 1982,
+    "title": "Falklands War",
+    "description": "Argentina claims dominion over the Falkland Islands nearby in the Atlantic Ocean. The UK, under the leadership of PM Margaret Thatcher, denied Argentina from claiming sovereignty of the British territory. Intense naval and land battles led to more than 900 deaths. The event strengthened US-UK relations and demonstrated Western military dominance. The event was also carefully studied by the USSR.",
+    "effects": [
+    {"type": "pp", "country": "UK", "delta": 100},
+    {"type": "war_outcome", "country": "UK"},
+    {"type": "pp", "country": "USA", "delta": 50},
+    {"type": "pp", "country": "USSR", "delta": 25},
+    { "type": "percent_pp", "country": "Argentina",   "percent": -0.5 }
+    ],
+    "effects_text": "UK gains 100 PP.\nUK rolls the War Outcome die.\nUS gains 50 PP.\nUSSR gains 25 PP.\nArgentina loses 50% of current PP.",
+    "button": "All of that over a pile of rocks?",
+    "image" : "3.jpg"
+    },
+    {
+    "year": 1986,
+    "title": "Chernobyl Disaster",
+    "description": "A nuclear power plant in Ukraine (a satellite state of the USSR) has a meltdown and causes widespread fear around the destructive nature of the atom. It showed incompetence on the side of the Soviets as the disaster was entirely avoidable. Mikhail Gorbachev claimed it led to the eventual collapse of the Soviet Union.",
+    "effects": [
+    {"type": "pp", "country": "USSR", "delta": -200},
+    {"type": "bloc_pp", "bloc": "Warsaw", "delta": -25},
+    { "type": "percent_pp", "country": "Ukraine", "percent": -0.5 }
+    ],
+    "effects_text": "USSR loses 200 PP.\nUkraine loses 50% of current PP.\nWarsaw Pact members lose 25 PP.",
+    "button": "Good Heavens!",
+    "image" : "4.jpg"
+    },
+    {
+    "year": 1969,
+    "title": "Man on the Moon",
+    "description": "The USA declared a come from behind victory in the Space Race when Apollo 11 landed on the moon. Neil Armstrong became the first man to step on an extra-terrestrial surface. This was considered the final accomplishment of the Space Race. That's one small step for a man...",
+    "effects": [
+    {"type": "pp", "country": "USA", "delta": 200},
+    {"type": "pp", "country": "USSR", "delta": -100},
+    {"type": "space_race", "country": "USA", "delta": 1 }
+    ],
+    "effects_text": "The USA gains 200 PP.\nUSSR loses 100 PP.\nThe US automatically gains one tier in the Space Race.",
+    "button": "One Giant Leap for Mankind",
+    "image" : "5.jpg"
+    },
+    {
+    "year": 1962,
+    "title": "Cuban Missile Crisis",
+    "description": "For twelve days, the world stood on the edge of a knife as nuclear missiles were placed in Cuba; easily within striking distance of every major American metropolitan area. These missiles were very nearly launched. Often undiscussed, there were US nuclear missiles were placed in Turkey; easily within striking distance of Soviet metropolitan areas. President Kennedy agreed to not invade Cuba, and Khrushchev agreed to not fire missiles into the US.",
+    "effects": [
+    {"type": "pp", "country": "Cuba", "delta": 25},
+    {"type": "pp", "country": "Turkey", "delta": 25},
+    {"type": "defcon", "delta": -1},
+    {"type": "bloc_pp", "bloc": "Non-Aligned", "delta": 50},
+    {"type": "arms_race_lock", "duration": 1}
+    ],
+    "effects_text": "Lower the DEFCON one level.\nNo tiers of the Arms Race may be bought during this round.\nNon-Aligned Bloc members gain 50 PP.\nCuba gains extra 25 PP.\nTurkey gains extra 25 PP.",
+    "button": "God help us all.",
+    "image" : "6.jpg"
+    },
+    {
+    "year": 1961,
+    "title": "Tsar Bomba",
+    "description": "The Soviets test the largest nuclear weapon ever detonated in the history of man. It was the equivalent to 44,000 Hiroshima nuclear bombs. It proved to the world that nuclear weapons could be capable of wiping out the entirety of humanity.",
+    "effects": [
+    {"type": "pp", "country": "USSR", "delta": 200},
+    {"type": "pp", "country": "USA", "delta": -200},
+    {"type": "bloc_pp", "bloc": "Warsaw", "delta": 50},
+    {"type": "arms_race", "country": "USSR", "delta": 1},
+    {"type": "bloc_pp", "bloc": "NATO", "delta": -25}
+    ],
+    "effects_text": "USSR gains 200 PP.\nWarsaw Pact members gains 50 PP.\nUSA loses 200 PP.\nNATO members loses 25 PP.\nUSSR gains one tier for free in the Arms Race.",
+    "button": "I'm sorry, I must've misheard. It was how big?",
+    "image" : "7.png"
+    },
+    {
+    "year": 1953,
+    "title": "Death of Joseph Stalin",
+    "description": "The long-ruling dictator of the Soviet Union, Joseph Stalin, died. This created turmoil in the USSR as uncertainty around the political stability of USSR came into question. Nikita Khrushchev became the leader and reversed many of the policies of Stalin.",
+    "effects": [
+    {"type": "pp", "country": "USSR", "delta": -100},
+    {"type": "bloc_pp", "bloc": "Warsaw", "delta": -10},
+    {"type": "draw_card_defcon","aces_delta": -1, "kings_delta": 1}
+    ],
+    "effects_text": "USSR loses 100 PP.\nWarsaw Pact members lose 10 PP.\nShuffle a pack of cards, if an ace is drawn, lower the DEFCON one level. If a King is drawn, raise the DEFCON one level.",
+    "button": "The Man of Steel falls",
+    "image" : "8.jpg"
+    },
+    {
+    "year": 1956,
+    "title": "Suez Crisis",
+    "description": "With the aid of the USSR, Egypt seized control of the British-controlled Suez Canal. This triggered an invasion of Egypt by Israel, Britain, and France. The USA and USSR urged attacking powers to withdraw. Many consider this event to mark the end of Britain’s reign as the premier empire of the world. Egypt gained and maintained control of the Suez Canal.",
+    "effects": [
+    {"type": "pp", "country": "Egypt", "delta": 150},
+    {"type": "pp", "country": "Israel", "delta": -25},
+    {"type": "pp", "country": "UK", "delta": -200},
+    {"type": "pp", "country": "France", "delta": -50},
+    {"type": "pp", "country": "USSR", "delta": 25},
+    {"type": "bloc_pp", "bloc": "NATO", "delta": -10},
+    {"type": "bloc_pp", "bloc": "NATO", "delta": 10},
+    {"type": "destabilize", "actor": "Egypt", "target": "UK"}
+    ],
+    "effects_text": "Egypt gains 150 PP.\nIsrael loses 25 PP.\nUnited Kingdom loses 200 PP.\nFrance loses 50 PP.\nAll other NATO members lose 10 PP.\nUSSR gains 25 PP.\nWarsaw Pact members gain 10 PP.\nEgypt rolls the Destabilize die with the UK as its target.",
+    "button": "The British Empire Unravels",
+    "image" : "9.jpg"
+    },
+    {
+    "start_year": 1948,
+    "end_year": 1949,
+    "title": "Berlin Blockade",
+    "description": "With both the Soviets and Western Powers trying to seize control of Germany, the country was split in half. The Soviets would not allow NATO powers to transport goods into Eastern Germany. East Germans starved and were without necessities as Cold War lines were clearly drawn.",
+    "effects": [
+    {"type": "pp", "country": "West Germany", "delta": -25},
+    {"type": "pp", "country": "East Germany", "delta": -50},
+    {"type": "pp", "country": "USSR", "delta": 100},
+    {"type": "bloc_pp", "bloc": "NATO", "delta": -25},
+    {"type": "destabilize", "actor": "USSR", "target": "West Germany"}
+    ],
+    "effects_text": "USSR gains 100 PP.\nWest Germany loses 25 PP.\nEast Germany loses 50 PP.\nNATO members lose 25 PP.\nUSSR rolls the Destabilize die with West Germany as its target.",
+    "button": "The Iron Curtain Falls Over Europe",
+    "image" : "10.png"
+    },
+    {
+    "year": 1973,
+    "title": "Yom Kippur War",
+    "description": "The Soviets back a short war supporting Syria and Egypt against the USA backed Israel. Tensions between the USA and USSR mount as many believed this event could cause WWIII. Israel technically wins and the United Nations negotiates peace.",
+    "effects": [
+    {"type": "pp", "country": "USSR", "delta": -75},
+    {"type": "pp", "country": "USA", "delta": -75},
+    {"type": "pp", "country": "Israel", "delta": 75},
+    {"type": "pp", "country": "Egypt", "delta": -25},
+    {"type": "pp", "country": "Syria", "delta": -25},
+    {"type": "defcon", "delta": -1}
+    ],
+    "effects_text": "USSR loses 75 PP.\nUSA loses 75 PP.\nIsrael gains 75 PP.\nEgypt loses 25 PP.\nSyria loses 25 PP.\nDEFCON lowers 1 level.",
+    "button": "Desert Firestorm",
+    "image" : "11.jpg"
+    },
+    {
+    "year": 1973,
+    "title": "The Oil Crisis",
+    "description": "As a response to the Yom Kippur War, OPEC (Organization of Petroleum Exporting Countries) denied sales of oil to the USA due to its military aid to Israel.",
+    "effects": [
+    {"type": "pp", "country": "USA", "delta": -250},
+    {"type": "pp", "country": "Saudi Arabia", "delta": 100},
+    {"type": "pp", "country": "Israel", "delta": -10},
+    {"type": "destabilize", "actor": "Saudi Arabia", "target": "USA"}
+    ],
+    "effects_text": "USA loses 250 PP.\nSaudi Arabia gains 100 PP.\nIsrael loses 10 PP.\nSaudi Arabia rolls the Destabilize die with the USA as the target.",
+    "button": "Not the Gas Prices!",
+    "image" : "12.jpg"
+    },
+    {
+    "start_year": 1979,
+    "end_year": 1989,
+    "title": "Soviet Afghan War",
+    "description": "The Soviets fought alongside the Democratic Republic of Afghanistan against the NATO-backed Mujahedeen. The arduous war was an abject failure for the Soviets known as the 'Bear Trap' in the 'Graveyard of Empires.'",
+    "effects": [
+    {"type": "percent_pp", "country": "USSR", "percent": -0.3},
+    {"type": "pp", "country": "Afghanistan", "delta": 200},
+    {"type": "pp", "country": "USA", "delta": 100},
+    {"type": "free_espionage", "actor": "USA", "target": "USSR"},
+    {"type": "bloc_member_vote", "from_bloc": "Warsaw", "to_bloc": "Non-Aligned"},
+    {"type": "destabilize", "actor": "Afghanistan", "target": "USSR"}
+    ],
+    "effects_text": "USSR loses 30% of current PP.\nAfghanistan gains 200 PP.\nUS gains100 PP.\nUS gains free successful espionage.\nWarsaw Pact loses one of its member countries to the Non-Aligned (Warsaw Pact votes).\nAfghanistan rolls the Destabilize die with the USSR as the target.",
+    "button": "The Red Army Bleeds",
+    "image" : "13.jpg"
+    },
+    {
+    "year": 1957,
+    "title": "Sputnik Satellite Launch",
+    "description": "The USSR launched the first satellite into orbit and successfully received transmissions. This event terrified the populace and leaders of NATO. The Space Race became vastly more important and the USA would throw support and funds into space research.",
+    "effects": [
+    {"type": "bloc_pp", "bloc": "NATO", "delta": -150},
+    {"type": "bloc_pp", "bloc": "Warsaw", "delta": 100},
+    {"type": "gain_space_race_tier", "country": "USSR", "tier": 2}
+    ],
+    "effects_text": "NATO loses 150 PP.\nWarsaw Pact gains 100 PP.\nUSSR gains the second tier of the Space Race whether or not the first tier is already purchased.",
+    "button": "Sputnik Shocks the World",
+    "image" : "14.jpg"
+    },
+    {
+    "start_year": 1969,
+    "end_year": 1972,
+    "title": "SALT I & SALT II Agreements",
+    "description": "The SALT (Strategic Armaments Limitation Talks) agreements were designed to relieve tensions between nuclear armed USSR and USA. The first SALT did little to fix the issue, but the second SALT did have some effect in limiting and reducing armaments.",
+    "effects": [
+    {"type": "defcon", "delta": 1},
+    {"type:": "arms_race", "country": "USA", "delta": -1},
+    {"type:": "arms_race", "country": "USSR", "delta": -1},
+    {"type": "bloc_pp", "bloc": "Warsaw", "delta": 50},
+    {"type": "bloc_pp", "bloc": "NATO", "delta": 50},
+    {"type": "bloc_pp", "bloc": "Non-Aligned", "delta": 50}
+    ],
+    "effects_text": "Raise the DEFCON one level.\nUSA loses one tier in the Arms Race\nUSSR loses one tier in the Arms Race\nNon-Aligned, NATO, and Warsaw pact members all gain 50 PP.",
+    "button": "Handshake Across the Iron Curtain",
+    "image" : "15.jpg"
+    },
+    {
+    "year": 1972,
+    "title": "Nixon in China",
+    "description": "USA President Richard Nixon visited China to meet with Chairman Mao after decades of zero contact. The summit was successful in opening lines of communication and trade between the countries. China started to incorporate more capitalist elements in the Chinese economy after this visit.",
+    "effects": [
+    {"type": "percent_pp", "country": "China", "percent": 0.5},
+    {"type": "pp", "country": "USA", "delta": 200},
+    {"type": "defcon", "delta": 1}
+    ],
+    "effects_text": "China gains 50% of current PP.\nUSA gains 200 PP.\nDEFCON raises 1 level.",
+    "button": "Nixon Opens the Door",
+    "image" : "16.jpg"
+    },
+    {
+    "year": 1963,
+    "title": "Assassination of President Kennedy",
+    "description": "The USA is collectively in distress after the televised assassination of President Kennedy. Conspiracy theories around the event immediately begin to circulate up as the Cold War world looked for a new path forward with the new President Lyndon Johnson.",
+    "effects": [
+    {"type": "pp", "country": "USA", "delta": -100},
+    {"type": "flip_coin_defcon","heads_delta": -1, "tails_delta": 0}
+    ],
+    "effects_text": "USA loses 100 PP.\nFlip a coin - heads, DEFCON lowers one level / tails, DEFCON remains at its current level.",
+    "button": "Oh my God-",
+    "image" : "17.jpg"
+    },
+    {
+    "start_year": 1958,
+    "end_year": 1962,
+    "title": "The Great Leap Forward",
+    "description": "Chairman Mao of China implements his plan, The Great Leap Forward. The goal was to industrialize agricultural China. It was in fact a disaster as the country experienced mass starvation with a death toll in the tens of millions.",
+    "effects": [
+    {"type": "skip_turn", "country": "China", "duration_rounds": 1},
+    {"type": "quiz", "country": "China", "question": "Is the Great Leap Forward referenced in Billy Joel's 1989 hit 'We Didn't Start the Fire'?", "effects_if_no": [{"type": "percent_pp", "country": "China", "percent": -0.50}], "effects_if_yes": [{"type": "percent_pp", "country": "China", "percent": -0.75}]}    
+    ],
+    "effects_text": "China cannot make any action this round.\nChina must answer the following question:\nIs the Great Leap Forward referenced in Billy Joel's 1989 megahit 'We Didn't Start the Fire'?\nIf correct, China only loses 50% of current PP\nIf incorrect, china loses an extra 75% of current PP",
+    "button": "The Great Leap... Backward",
+    "image" : "18.jpg"
+    },
+    {
+    "year": 1961,
+    "title": "Bay of Pigs Invasion",
+    "description": "The USA financed and supported a Coup d'Etat complete with an invasion force of 1,400 CIA trained anti-Communist Cuban exiles. The USA-backed Cuban exiles were quickly overwhelmed by Fidel Castro's forces. The failure of the Coup d'Etat was a major blow to the perception of American hegemony in the western hemisphere.",
+    "effects": [
+    {"type": "percent_pp", "country": "USA", "percent": -0.1},
+    {"type": "pp", "country": "Cuba", "delta": 100},
+    {"type": "destabilize", "actor": "Cuba", "target": "USA"}
+    ],
+    "effects_text": "USA loses 10% of current PP.\nCuba gains 100 PP.\nCuba rolls the Destabilize die - target USA.",
+    "button": "American Hubris Exposed",
+    "image" : "19.jpg"
+    },
+    {
+    "start_year": 1955,
+    "end_year": 1975,
+    "title": "Vietnam War",
+    "description": "France lost colonial control over Vietnam in the First Indochina War. In response, the North Vietnamese, backed by the USSR and China, made major advancements to take over the entire country. The USA and other anti-Communist countries ramped up the South Vietnamese war effort by putting their own boots on the ground. Even with increased manpower and firepower on the side of South Vietnam, the North Vietnamese eventually took the southern Capitol. Surrounding countries of Laos and Cambodia would also fall to Communism after the war. Throughout the war, American public opinion slowly and steadily waned; making Vietnam a massively unpopular war. The loss of Vietnam is arguably the most embarrassing military event of the USA's history.",
+    "effects": [
+    {"type": "war_outcome", "country": "Vietnam"},
+    {"type": "pp", "country": "USSR", "delta": 100},
+    {"type": "pp", "country": "China", "delta": 50},
+    {"type": "pp", "country": "USA", "delta": -300}
+    ],
+    "effects_text": "Vietnam rolls the War Outcome die.\nUSSR gains 100 PP.\nChina gains 50 PP\nUSA loses 300 PP.",
+    "button": "Quagmire in the Jungle",
+    "image" : "20.jpg"
+    },
+    {
+    "start_year": 1950,
+    "end_year": 1953,
+    "title": "Korean War",
+    "description": "The USSR and China trained and funded the Korean Peoples Army (North Korea) in their takeover of Korea peninsula. South Korea would receive support from the United Nations. The USA in particular landed with boots on the ground in attempt to stop the spread of Communism. The war ended in an eventual stalemate at the 38th parallel, coincidentally the same place the war began. The two countries have been in a constant state of preparation of war ever since as a peace treaty was never signed.",
+    "effects": [
+    {"type": "pp", "country": "North Korea", "delta": 150},
+    {"type": "pp", "country": "China", "delta": 50},
+    {"type": "pp", "country": "USSR", "delta": 100},
+    {"type": "pp", "country": "USA", "delta": 100},
+    {"type": "percent_pp", "country": "South Korea", "percent": -0.5},
+    {"type": "war_outcome", "country": "North Korea"}
+    ],
+    "effects_text": "North Korea gains 150 PP.\nChina gains 50 PP\nUSSR gains 100 PP\nUSA loses 100 PP\nSouth Korea loses 50% of current PP\nNorth Korea rolls the War Outcome die.",
+    "button": "The Frozen War",
+    "image" : "21.jpg"
+    },
+    {
+    "year": 1989,
+    "title": "Fall of the Berlin Wall",
+    "description": "After decades of East and West Germany being cut off from one another. Separated by a concrete wall, pressure mounted in West Germany to force the East German government to tear down the Berlin wall. The reunification of Germany was imminent and it appeared that the final days of the Cold War were on the horizon.",
+    "effects": [
+    {"type": "pp", "country": "East Germany", "delta": 100},
+    {"type": "pp", "country": "West Germany", "delta": 100},
+    {"type": "bloc_pp", "bloc": "NATO", "delta": 50},
+    {"type": "bloc_pp", "bloc": "Warsaw", "delta": 50},
+    {"type": "quiz", "country": "West Germany", "question": "Is the Fall of the Berlin Wall referenced in Billy Joel's 1989 hit 'We Didn't Start the Fire'?", 
+      "effects_if_yes": [
+        {"type": "defcon", "delta": 1}           
+      ],
+      "effects_if_no": [
+        {"type": "defcon", "delta": 5},      
+        {"type": "pp", "country": "West Germany", "delta": 50},
+        {"type": "pp", "country": "East Germany", "delta": 50}
+      ]}
+    ],
+    "effects_text": "East Germany gains 100 PP.\nWest Germany gains 100 PP.\nAll other NATO members gain 50 PP.\nAll other Warsaw Pact members gain 50 PP\nWest Germany must answer this question:\nIs the Fall of the Berlin Wall referenced in Billy Joel's 1989 megahit 'We Didn't Start the Fire'?\nIf correct, the DEFCON raises to level 5 and both East & West Germany gain an extra 50 PP.\nIf incorrect, the DEFCON raises 1 level.",
+    "button": "The Iron Curtain Falls",
+    "image" : "22.jpg"
+    },
+    {
+    "year": 1968,
+    "title": "Nuclear Non-Proliferation Treaty",
+    "description": "This treaty was signed by the major and non-major nuclear powers of the world. The agreement was designed to downsize the amount of nuclear arms, stop the spread of nuclear arms, and define the right to peacefully use nuclear energy.",
+    "effects": [
+    {"type": "defcon", "delta": 2},
+    {"type": "bloc_pp", "bloc": "Non-Aligned", "delta": 50},
+    {"type": "percent_pp", "country": "USA", "percent": -0.05},
+    {"type": "percent_pp", "country": "USSR", "percent": -0.05},
+    {"type": "war_power", "country": "USA", "delta": -1},
+    {"type": "war_power", "country": "USSR", "delta": -1}
+    ],
+    "effects_text": "Raise the DEFCON two levels.\nNon-Aligned Bloc members gain 50 PP.\nUSSR and USA lose 5% current power points and 1 war power each.",
+    "button": "Atoms for Peace",
+    "image" : "23.jpg"
+    },
+    {
+    "start_year": 1975,
+    "end_year": 2002,
+    "title": "Angolan Civil War",
+    "description": "Angola fought for their independence from Portugal whom colonized Angola. The USSR and Cuba backed the Marxist-Communist MPLA. The USA and South Africa backed the anti-Communist UNITA. The USA and the Democratic Republic of the Congo (Zaire) also backed a third anti-Communist actor, the FNLA. As Capitalism and Communism jockeyed for more regional control around the world, this proxy war became an imbroglio. The war continued for decades and the support from major powers were soon directed elsewhere in the world.",
+    "effects": [
+    {"type": "pp", "country": "USA", "delta": 50},
+    {"type": "pp", "country": "South Africa", "delta": 25},
+    {"type": "pp", "country": "USSR", "delta": 50},
+    {"type": "pp", "country": "Cuba", "delta": 25},
+    {"type": "war_outcome", "country": "Cuba"}
+    ],
+    "effects_text": "USA gain 50 PP.\nSouth Africa gain 25 PP\nUSSR gain 50 PP\nCuba gain 25 PP\nCuba rolls the War Outcome die",
+    "button": "Fire in the Heart of Africa",
+    "image" : "24.jpg"
+    },
+    {
+    "year": 1979,
+    "title": "Nicaraguan Revolution",
+    "description": "The USSR-backed Sandinistas were a Marxist Communist revolutionary group that overthrew the USA-backed Somoza dictatorship whom were in control of Nicaragua. The Sandinistas were successful in overthrowing the Somoza family and it became an embarrassment for the USA as Nicaragua is well within the American sphere of influence. For the next decade, the USA would then back the Contra rebels through the CIA. The war finally ended with the conclusion of the Iran-Contra scandal that was uncovered in 1986, bringing international scandal to the Reagan administration and leading to a negotiated end to the conflict.",
+    "effects": [
+    {"type": "coup", "country": "USSR"},
+    {"type": "pp", "country": "USSR", "delta": 100},
+    {"type": "percent_pp", "country": "USA", "percent": -0.1},
+    {"type": "coup", "country": "Nicaragua"},
+    {"type": "pp", "country": "Nicaragua", "delta": 75}
+    ],
+    "effects_text": "USSR rolls the Coup d'Etat die.\nUSSR gains 100 PP.\nUSA loses 10% of current PP.\nNicaragua rolls the Coup d'Etat die.\nNicaragua gains 75 PP.",
+    "button": "Red Tide in the Americas",
+    "image" : "25.jpg"
+    },
+    {
+    "start_year": 1969,
+    "end_year": 1979,
+    "title": "Detente",
+    "description": "Led by President Nixon, Detente was a genuinely successful attempt to cool the tensions between the USA and USSR as well as other Communist countries. This was done through open and continued communication, treaties, and agreements between eastern and western countries.",
+    "effects": [
+    {"type": "bloc_pp", "bloc": "Non-Aligned", "delta": 25},
+    {"type": "quiz", "country": "USSR", "question": "Is Detente referenced in Billy Joel's 1989 megahit 'We Didn't Start the Fire'?", 
+      "effects_if_yes": [
+        {"type": "defcon", "delta": 0}           
+      ],
+      "effects_if_no": [
+        {"type": "defcon", "delta": 3}
+      ]}
+    ],
+    "effects_text": "Non-aligned countries gain 25 PP.\nThe USSR must answer this question:\nIs Detente referenced in Billy Joel's 1989 megahit 'We Didn't Start the Fire'?\nIf correct, raise the DEFCON 3 levels.\nIf incorrect, the DEFCON remains where it currently is.",
+    "button": "Nixon - what an honest man!",
+    "image" : "26.jpg"
+    },
+    {
+    "year": 1991,
+    "title": "START 1",
+    "description": "The Strategic Arms Reduction Treaty was an agreement between the USA and the USSR to significantly downsize the amount of nuclear arms between the two powers. While this was a rather successful event, each side continues to maintain between 5,000 and 6,000 warheads; this is significantly reduced from its peak of more than 47,000 held by the USSR in the 1970s.",
+    "effects": [
+    {"type": "defcon", "delta": 5},
+    {"type": "pp", "country": "USA", "delta": 300},
+    {"type": "pp", "country": "USSR", "delta": 300},
+    {"type": "bloc_pp", "bloc": "Warsaw", "delta": 50},
+    {"type": "bloc_pp", "bloc": "NATO", "delta": 50},
+    {"type": "bloc_pp", "bloc": "Non-Aligned", "delta": 50}
+    ],
+    "effects_text": "DEFCON automatically raises to level 5.\nUSSR and USA gain 300 PP.\nNon-Aligned, NATO, and Warsaw Pact members each gain 50 PP.",
+    "button": "We'll Keep a Few...Thousand",
+    "image" : "27.jpg"
+    },
+    {
+    "year": 1960,
+    "title": "U2 Incident",
+    "description": "A USA piloted U2 Spy Plane was performing reconnaissance over the USSR. The plane was shot down and it led to a massive breakdown in communication and relations between the east and west.",
+    "effects": [
+    {"type": "quiz", "country": "USA", "question": "Is the U2 Incident referenced in Billy Joel's 1989 mega hit 'We Didn't Start the Fire'?", 
+      "effects_if_yes": [
+        {"type": "defcon", "delta": 1}           
+      ],
+      "effects_if_no": [
+        {"type": "classified_documents", "country": "USSR"},
+        {"type": "bloc_pp", "bloc": "Warsaw", "delta": 50}
+      ]}
+    ],
+    "effects_text": "USA answers this question:\nIs the U2 Incident referenced in Billy Joel's 1989 mega hit 'We Didn't Start the Fire'?\nIf correct, raise the DEFCON 1 level.\nIf incorrect, USSR and Warsaw Pact members gain 50 PP and USSR rolls the Classified Documents die",
+    "button": "We Thought You Wouldn't Notice...",
+    "image" : "28.jpg"
+    },
+    {
+    "year": 1983,
+    "title": "Able Archer 83",
+    "description": "Able Archer was a USA attempt at a simulated military exercise of war between the USSR and NATO in a scenario where DEFCON reached level one. The authenticity of the exercise was covertly observed by the USSR. The USSR and the rest of the Warsaw Pact quickly began scrambling to respond with overwhelming force. A USA general chose not to respond to the military mobilization that was observed in Warsaw Pact countries. This incident was declassified in 2015. In 2021, further declassified documents supported the supposition that it was one of very near “misses” from nuclear annihilation.",
+    "effects": [
+    {"type": "defcon", "delta": -1},
+    {"type": "flip_coin_defcon","heads_delta": 2, "tails_delta": 0},
+    {"type": "destabilize", "country": "USA"}
+    ],
+    "effects_text": "DEFCON lowers one level.\nUSA, flip a coin, if it is heads, DEFCON raises two levels. If it is tails, the DEFCON remains the same.\nUSA rolls the Destabilize die.",
+    "button": "Hold on - is the other side mobilizing?",
+    "image" : "29.jpg"
+    },
+    {
+    "year": 1953,
+    "title": "Iranian Coup d'Etat",
+    "description": "The USA and UK employed a coup d'etat against the Mohammad Mosaddegh regime as the Mosaddegh government was attempting to audit British oil companies operating in Iran and there was a strong movement to nationalize the oil industry. The CIA staged paid 'protestors' to drum up an overthrow of the Mosaddegh regime in favor of the Shah (king) Mohammad Reza. Shah Reza was supported and held up by the CIA and Mosaddegh was arrested, and later sentenced to death, though was spared by the Shah with a pardon.",
+    "effects": [
+    {"type": "coup", "country": "USA"},
+    {"type": "coup", "country": "UK"},
+    {"type": "percent_pp", "country": "Iran", "percent": -0.1}
+    ],
+    "effects_text": "UK roll the Coup d'Etat die.\nUSA rolls the Coup d'Etat die\nIran loses 10% PP.",
+    "button": "They did what for oil?",
+    "image" : "30.jpg"
+    },
+    {
+    "start_year": 1971,
+    "end_year": 1974,
+    "title": "Bangladesh Liberation War (1971) & 'Smiling Buddha' (1974)",
+    "description": "The Mukti Bahini was Bangladeshi rebel group with intentions of self-determination (start their own nation) against the Chinese-backed Pakistan. Mukti Bahini was militarily supported and funded by India and the USSR. Pakistan answered by committing genocide against the Bangledeshi people. In the end, Mukti Bahini was successful in establishing their own independent nation of Bangladesh. In response to this loss, Pakistan began a nuclear weapons program as hatred for India had grown vigorously during the war. India, to defend itself against China and Pakistan, had started a nuclear program in 1947. In 1974, India successfully tested their first nuclear weapon, known as \"Smiling Buddha\". Pakistan responded by stealing nuclear plans from Europe with the help of China and developed their own nuclear weapons leading to high tensions in the Indian sub-continent.",
+    "effects": [
+    {"type": "pp", "country": "USSR", "delta": 50},
+    {"type": "pp", "country": "India", "delta": 100},
+    {"type": "pp", "country": "China", "delta": -25},
+    {"type": "percent_pp", "country": "Pakistan", "percent": -0.25},
+    {"type": "classified_documents", "country": "Pakistan"},
+    {"type": "war_outcome", "country": "India"},
+    {"type": "defcon", "delta": -1}
+    ],
+    "effects_text": "USSR gains 50 PP.\nIndia gains 100 PP.\nChina loses 25 PP.\nPakistan loses 25% of current PP.\nPakistan rolls the Classified Documents die.\nIndia rolls the War Outcome die.\nDEFCON lowers 1 level.",
+    "button": "A Nation is Born",
+    "image" : "31.jpg"
+    },
+    {
+    "start_year": 1979,
+    "end_year": 1981,
+    "title": "Iranian Hostage Crisis",
+    "description": "53 American diplomats were taken hostage by Iranian Revolutionaries angered by the USA's orchestration of the Iranian coup d'etat in 1953. President Jimmy Carter struggled to free the hostages resulting in an embarrassing moment for the USA. Incoming president Ronald Reagan quickly negotiated the release of the hostages when inaugurated in the 1981.  Significant evidence released in 2023 and 2024 points to a covert deal being made to hold the hostages until Reagan's election victory and inauguration.",
+    "effects": [
+    {"type": "pp", "country": "USA", "delta": -100},
+    {"type": "destabilize", "actor": "Iran", "target": "USA"}
+    ],
+    "effects_text": "USA lose 100 PP.\nIran roll the Destabilize die with USA as the target.",
+    "button": "Release Scheduled for Reagan",
+    "image" : "32.jpg"
+    },
+    {
+    "year": 1961,
+    "title": "Vostock 1 Mission",
+    "description": "The USSR became the first country to put a man in space as Yuri Gagarin orbited Earth for about an hour and a half. This moment encouraged the USA to ramp up the space program with President Kennedy claiming that the United States would put a man on the moon before the end of the decade.",
+    "effects": [
+    {"type": "pp", "country": "USSR", "delta": 50},
+    {"type": "pp", "country": "USA", "delta": -50},
+    {"type": "yes_no",
+      "question": "Spend 600 PP now to jump directly to Space Race Tier 3?",
+      "effects_if_yes": [
+        { "type": "space_race_purchase", "country": "USSR", "tier": 3, "cost": 600 }
+      ],
+      "effects_if_no": []}
+    ],
+    "effects_text": "USSR gains 50 PP.\nUSSR gains the third tier of the Space Race for a one time cost of 600 PP.\nUSA loses 50 PP.\n",
+    "button": "Mankind Leaves Earth",
+    "image" : "33.jpg"
+    }
+]
