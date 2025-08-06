@@ -8,7 +8,7 @@ from gamestate import *
 WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 800
 FPS = 60
 BG_COLOR = (30, 33, 40)
-BTN_W, BTN_H = 240, 80
+BTN_W, BTN_H = 400, 80
 BUTTON_COLOR = (80, 120, 200)
 BUTTON_HOVER = (120, 160, 240)
 BUTTON_TEXT_COLOR = (255, 255, 255)
@@ -45,10 +45,13 @@ def main():
                 screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
                 btn_rect.center = (screen.get_width() // 2, screen.get_height() // 2)
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and hover and show_title:
-                Game.coup_spinner(Game.country("USA"), Game.country("USSR"))
+                #Game.coup_spinner(Game.country("USA"), Game.country("USSR"))
+                #Game.coin_flip()
                 show_title = False
 
             # --- overlay managers ---
+            if Game.coin_mgr.is_active():
+                Game.coin_mgr.handle_event(event)
             if Game.spinner_mgr.is_active():
                 Game.spinner_mgr.handle_event(event)
             if Game.dice_mgr.is_active():
@@ -57,6 +60,8 @@ def main():
                 Game.war_mgr.handle_event(event)
 
         # --- overlay updates ---
+        if Game.coin_mgr.is_active():
+            Game.coin_mgr.update(clock.get_time() / 1000.0)
         if Game.spinner_mgr.is_active():
             Game.spinner_mgr.update(clock.get_time() / 1000.0)
         if Game.dice_mgr.is_active():
@@ -72,6 +77,8 @@ def main():
             draw_button(screen, btn_rect, "Start Coup Spinner", font, hover)
 
         # --- overlay draws ---
+        if Game.coin_mgr.is_active():
+            Game.coin_mgr.draw()
         if Game.spinner_mgr.is_active():
             Game.spinner_mgr.draw()
         if Game.dice_mgr.is_active():

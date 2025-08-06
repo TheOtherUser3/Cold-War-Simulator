@@ -6,6 +6,8 @@ from models import Country, Bloc
 from dice import Dice, DiceManager, DiceFace
 from spinner import Spinner, SpinnerManager, OPTIONS
 from War import WarManager
+from coin import CoinManager, Coin
+from quiz import QuizManager
 
 COUP_DIE = Dice([
     DiceFace("DEFCON lowers"),
@@ -64,6 +66,8 @@ class GameState:
         self.screen = screen
         self.spinner_mgr = SpinnerManager(screen, Spinner(OPTIONS))
         self.dice_mgr = DiceManager(screen)
+        self.coin_mgr = CoinManager(self.screen)
+
 
         # Phases state
         self.espionage_moves = []   # [(country, target_country)]
@@ -83,54 +87,9 @@ class GameState:
         self.handle_war_spoils()
         self.end_of_bloc_cleanup()
 
-    def collect_espionage_choices(self, bloc):
-        # In actual game: prompt player or AI for espionage moves.
-        # For now, just a placeholder for input.
-        self.espionage_moves = []
-        for country in bloc.countries:
-            # e.g. ask: "Does {country.name} want to spy? If so, on whom?"
-            pass  # collect and append moves
-
-    def collect_action_choices(self, bloc):
-        self.action_moves = []
-        for country in bloc.countries:
-            # e.g. ask: "What action does {country.name} want to take?"
-            pass  # collect and append moves
-
-    def resolve_espionage_phase(self):
-        # For each espionage move, resolve outcome or flag as "pending discovery"
-        self.espionage_results = []
-        for move in self.espionage_moves:
-            # Apply detection logic, mark successful/failed/undiscovered
-            pass
-
-    def resolve_action_phase(self):
-        # Apply all chosen actions, in order or by rule priority
-        for move in self.action_moves:
-            # move = (country, action_type, params)
-            pass
-        # Handle espionage moves that were not discovered: success!
-        for result in self.espionage_results:
-            if not result["discovered"]:
-                # Apply espionage success effect
-                pass
-
-    def collect_war_support_choices(self, bloc):
-        self.support_moves = []
-        # For every country involved in war, ask their allies if they want to send support
-        # Example placeholder:
-        for war in self.war_moves:
-            attacker, defender = war
-            # Allies can send support to attacker or defender here
-            pass
-
     def resolve_war_phase(self):
         # Actually resolve all wars, considering support
         # Populate self.war_moves as needed
-        pass
-
-    def handle_war_spoils(self):
-        # Give rewards to victors, penalize losers, transfer PP, arms/space tiers, etc.
         pass
 
     def end_of_bloc_cleanup(self):
@@ -448,7 +407,7 @@ class GameState:
         )
         # TO DO: ADD CALL TO INITIALIZE WAR HERE BY GIVING COUNTRIES OPTION TO DONATE PP
         def on_war_finished(winner):
-            if winner == "attacker":
+            if winner == attacker:
                 actor, target = attacker, defender
             else:
                 actor, target = defender, attacker
@@ -457,6 +416,15 @@ class GameState:
     
         self.war_mgr = WarManager(self.screen, attacker, defender, fonts, on_result=on_war_finished)
     
+    def coin_flip(self):
+        """Wrapper function to flip the DEFCON Coin and apply its effects"""
+        def on_result(idx: int, label: str) -> None:
+            delta = 1 if idx == 0 else -1     # +1 on RAISE, -1 on LOWER
+            self.defcon = max(1, min(5, self.defcon + delta))  # don't let over 5 or under 1
+        self.coin_mgr.start_flip(Coin.defcon(), on_result=on_result)
+            
     def country(self, name):
         """To be used externally to extract a country object by name e.g. 'USA' or 'Brazil'"""
         return self.countries[name]
+    
+    

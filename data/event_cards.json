@@ -255,7 +255,11 @@
     "description": "Chairman Mao of China implements his plan, The Great Leap Forward. The goal was to industrialize agricultural China. It was in fact a disaster as the country experienced mass starvation with a death toll in the tens of millions.",
     "effects": [
     {"type": "skip_turn", "country": "China", "duration_rounds": 1},
-    {"type": "quiz", "country": "China", "question": "Is the Great Leap Forward referenced in Billy Joel's 1989 hit 'We Didn't Start the Fire'?", "effects_if_no": [{"type": "percent_pp", "country": "China", "percent": -0.50}], "effects_if_yes": [{"type": "percent_pp", "country": "China", "percent": -0.75}]}    
+    {"type": "quiz", "country": "China", "question": "Is the Great Leap Forward referenced in Billy Joel's 1989 hit 'We Didn't Start the Fire'?", "effects_if_no": [{"type": "percent_pp", "country": "China", "percent": -0.50}], "effects_if_yes": [{"type": "percent_pp", "country": "China", "percent": -0.75}],
+    "effects_text_if_yes": "China loses 75% of current PP, instead of just 50%.",
+    "effects_text_if_no": "China only loses 50% of current PP, instead of 75%.",
+    "correct_is_yes": false
+    }    
     ],
     "effects_text": "China cannot make any action this round.\nChina must answer the following question:\nIs the Great Leap Forward referenced in Billy Joel's 1989 megahit 'We Didn't Start the Fire'?\nIf correct, China only loses 50% of current PP\nIf incorrect, china loses an extra 75% of current PP",
     "button": "The Great Leap... Backward",
@@ -323,9 +327,12 @@
         {"type": "defcon", "delta": 5},      
         {"type": "pp", "country": "West Germany", "delta": 50},
         {"type": "pp", "country": "East Germany", "delta": 50}
-      ]}
-    ],
+      ],
+      "effects_text_if_yes": "DEFCON only raises by one level.",
+      "effects_text_if_no": "DEFCON raises by five levels, and both East and West Germany gain 50 PP",
+      "correct_is_yes": false}],
     "effects_text": "East Germany gains 100 PP.\nWest Germany gains 100 PP.\nAll other NATO members gain 50 PP.\nAll other Warsaw Pact members gain 50 PP\nWest Germany must answer this question:\nIs the Fall of the Berlin Wall referenced in Billy Joel's 1989 megahit 'We Didn't Start the Fire'?\nIf correct, the DEFCON raises to level 5 and both East & West Germany gain an extra 50 PP.\nIf incorrect, the DEFCON raises 1 level.",
+
     "button": "The Iron Curtain Falls",
     "image" : "22.jpg"
     },
@@ -389,7 +396,11 @@
       ],
       "effects_if_no": [
         {"type": "defcon", "delta": 3}
-      ]}
+      ],
+      "effects_text_if_yes": "DEFCON remains unchanged.",
+      "effects_text_if_no": "DEFCON raises by three levels.",
+      "correct_is_yes": false
+    }
     ],
     "effects_text": "Non-aligned countries gain 25 PP.\nThe USSR must answer this question:\nIs Detente referenced in Billy Joel's 1989 megahit 'We Didn't Start the Fire'?\nIf correct, raise the DEFCON 3 levels.\nIf incorrect, the DEFCON remains where it currently is.",
     "button": "Nixon - what an honest man!",
@@ -421,11 +432,15 @@
         {"type": "defcon", "delta": 1}           
       ],
       "effects_if_no": [
-        {"type": "classified_documents", "country": "USSR"},
+        {"type": "classified_documents", "acotor": "USSR", "target": "USA"},
         {"type": "bloc_pp", "bloc": "Warsaw", "delta": 50}
-      ]}
+      ],
+      "effects_text_if_yes": "DEFCON raises by one level.",
+      "effects_text_if_no": "Warsaw Pact members gain 50 PP.  USSR rolls Classified Docs Die targetting USA.",
+      "correct_is_yes": true
+    }
     ],
-    "effects_text": "USA answers this question:\nIs the U2 Incident referenced in Billy Joel's 1989 mega hit 'We Didn't Start the Fire'?\nIf correct, raise the DEFCON 1 level.\nIf incorrect, USSR and Warsaw Pact members gain 50 PP and USSR rolls the Classified Documents die",
+    "effects_text": "USA answers this question:\nIs the U2 Incident referenced in Billy Joel's 1989 mega hit 'We Didn't Start the Fire'?\nIf correct, raise the DEFCON 1 level.\nIf incorrect, USSR and Warsaw Pact members gain 50 PP and USSR rolls the Classified Documents die on USA",
     "button": "We Thought You Wouldn't Notice...",
     "image" : "28.jpg"
     },
@@ -465,11 +480,11 @@
     {"type": "pp", "country": "India", "delta": 100},
     {"type": "pp", "country": "China", "delta": -25},
     {"type": "percent_pp", "country": "Pakistan", "percent": -0.25},
-    {"type": "classified_documents", "country": "Pakistan"},
-    {"type": "war_outcome", "country": "India"},
+    {"type": "classified_documents", "actor": "Pakistan", "target":""},
+    {"type": "war_outcome", "actor": "India", "target": "Pakistan"},
     {"type": "defcon", "delta": -1}
     ],
-    "effects_text": "USSR gains 50 PP.\nIndia gains 100 PP.\nChina loses 25 PP.\nPakistan loses 25% of current PP.\nPakistan rolls the Classified Documents die.\nIndia rolls the War Outcome die.\nDEFCON lowers 1 level.",
+    "effects_text": "USSR gains 50 PP.\nIndia gains 100 PP.\nChina loses 25 PP.\nPakistan loses 25% of current PP.\nPakistan rolls the Classified Documents die on the Netherlands.\nIndia rolls the War Outcome die on Pakistan.\nDEFCON lowers 1 level.",
     "button": "A Nation is Born",
     "image" : "31.jpg"
     },
