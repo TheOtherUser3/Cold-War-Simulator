@@ -1,10 +1,11 @@
 """Handles the turn based system"""
 
 import logging
+import pygame
 from models import Country, Bloc
 from dice import Dice, DiceManager, DiceFace
 from spinner import Spinner, SpinnerManager, OPTIONS
-from War import War
+from War import WarManager
 
 COUP_DIE = Dice([
     DiceFace("DEFCON lowers"),
@@ -29,7 +30,7 @@ DESTABILIZE_DIE = Dice([
     DiceFace("Remove 2 War Power"),
     DiceFace("Guaranteed Coup"), #on target country, roll coup dice
     DiceFace("DEFCON lowers"),
-    DiceFace("Guarantee Spy"), #On target country, roll espionage dice
+    DiceFace("Guaranteed Espionage"), #On target country, roll espionage dice
     DiceFace("Steal 10% PP"),
 ])
 
@@ -37,7 +38,7 @@ WAROUTCOME_DIE = Dice([
     DiceFace("Transfer Country"), #To winner's bloc
     DiceFace("Pay Extra 10% PP"), #10% of current PP, on top of other losses
     DiceFace("Steal Arms Race"), 
-    DiceFace("Imbroglio"), #No winner or loser regardless of victory, negates outcome benefits/losses
+    DiceFace("Imbroglio (War Effects Negated)"), #No winner or loser regardless of victory, negates outcome benefits/losses
     DiceFace("War Reparations"), #Loser pays 
     DiceFace("DEFCON lowers"),
 ])
@@ -263,7 +264,7 @@ class GameState:
         logging.info(log_msg)
         self.action_log += log_msg
         return True
-    
+
     def coup_die(self, actor, target):
         """actor rolls coup dice on target"""
         def _on_result(idx: int, label: str) -> None:
@@ -281,7 +282,13 @@ class GameState:
                 case 5:  
                     actor.war_power += 1
 
-        self.dice_mgr.start_roll(COUP_DIE, on_result=_on_result)
+        self.dice_mgr.start_roll(
+            COUP_DIE,
+            on_result=_on_result,
+            title="Coup",
+            actor_name=actor.name,
+            target_name=target.name,
+        )
     
     def espionage_die(self, actor, target):
         """actor rolls espionage dice on target"""
@@ -301,17 +308,22 @@ class GameState:
                     actor.pp = int(actor.pp + target.pp*0.10)
                     target.pp = int(target.pp* 0.9)
                 case 5:  
-                    self.classifiesdocs_die(actor,target)
+                    self.classifieddocs_die(actor,target)
 
-        self.dice_mgr.start_roll(ESPIONAGE_DIE, on_result=_on_result)
+        self.dice_mgr.start_roll(
+            ESPIONAGE_DIE,
+            on_result=_on_result,
+            title="Espionage",
+            actor_name=actor.name,
+            target_name=target.name,
+        )
             
     def destabilize_die(self, actor, target):
         """actor rolls destabilize dice on target"""
         def _on_result(idx: int, label: str) -> None:
             match idx:
                 case 0:
-                    winner, loser = War(self.screen, actor, target)
-                    self.waroutcomes_die(winner, loser)
+                    self.start_war(actor, target)
                 case 1:  
                     target.war_power -= 2
                 case 2:  
@@ -324,7 +336,13 @@ class GameState:
                     actor.pp = int(actor.pp + target.pp*0.10)
                     target.pp = int(target.pp* 0.9)
 
-        self.dice_mgr.start_roll(DESTABILIZE_DIE, on_result=_on_result)
+        self.dice_mgr.start_roll(
+            DESTABILIZE_DIE,
+            on_result=_on_result,
+            title="Destabilize",
+            actor_name=actor.name,
+            target_name=target.name,
+        )
     
     def waroutcome_die(self, actor, target):
         """actor rolls destabilize dice on target
@@ -353,9 +371,14 @@ class GameState:
             penalty = min(50, target.pp)
             target.pp -= penalty
                 
-        self.dice_mgr.start_roll(WAROUTCOME_DIE, on_result=_on_result)
+        self.dice_mgr.start_roll(
+            WAROUTCOME_DIE,
+            on_result=_on_result,
+            title="War Outcome",
+            actor_name=actor.name,
+            target_name=target.name,
+        )
 
-        
     
     def classifieddocs_die(self, actor, target):
         """actor rolls classified docs dice on target"""
@@ -375,7 +398,13 @@ class GameState:
                 case 5:  
                     self.destabilize_die(actor, target)
 
-        self.dice_mgr.start_roll(CLASSIFIEDDOCS_DIE, on_result=_on_result)
+        self.dice_mgr.start_roll(
+            CLASSIFIEDDOCS_DIE,
+            on_result=_on_result,
+            title="Classified Docs",
+            actor_name=actor.name,
+            target_name=target.name,
+        )
         
     def coup_spinner(self, actor, target):
         """
@@ -389,10 +418,10 @@ class GameState:
                 case 0:  # Failed Coup — Roll Classified Docs Die
                     self.classifieddocs_die(actor, target)
                 case 1:  # Failed Coup — Starts War
-                    War(actor, target)
+                    self.start_war(actor, target)
                 case 2:  # Successful Coup — Roll Coup + Destabilize
-                    self.coup_die(actor, target)
-                    self.destabilize_die(actor, target)
+                     self.coup_die(actor, target)
+                     self.destabilize_die(actor, target)
                 case 3:  # Failed Coup — Pay 10 % extra PP
                     actor.pp = int(actor.pp * 0.9)
                 case 4:  # Failed Coup — Roll Destabilize Die
@@ -403,7 +432,30 @@ class GameState:
                     self.coup_die(actor, target)
                     self.classifieddocs_die(actor, target)
 
-        self.spinner_mgr.start_spin(on_result=_on_result)
+        self.spinner_mgr.start_spin(
+            on_result=_on_result,
+            title="Coup Spinner",
+            actor_name=actor.name,
+            target_name=target.name,
+        )
+    
+    def start_war(self, attacker, defender):
+        fonts = (
+            pygame.font.SysFont("Segoe UI", 36),
+            pygame.font.SysFont("Segoe UI", 24),
+            pygame.font.SysFont("Segoe UI", 18),
+            pygame.font.SysFont("Segoe UI", 40, bold=True),
+        )
+        # TO DO: ADD CALL TO INITIALIZE WAR HERE BY GIVING COUNTRIES OPTION TO DONATE PP
+        def on_war_finished(winner):
+            if winner == "attacker":
+                actor, target = attacker, defender
+            else:
+                actor, target = defender, attacker
+            # Start war outcome die roll with winner/loser
+            self.waroutcome_die(actor, target)
+    
+        self.war_mgr = WarManager(self.screen, attacker, defender, fonts, on_result=on_war_finished)
     
     def country(self, name):
         """To be used externally to extract a country object by name e.g. 'USA' or 'Brazil'"""

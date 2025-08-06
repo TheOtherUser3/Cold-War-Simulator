@@ -6,6 +6,8 @@ Created on Sun Nov 17 18:35:17 2024
 """
 import random
 import logging
+import pygame
+
 
 logger = logging.getLogger("war")
 logger.setLevel(logging.INFO)
@@ -27,6 +29,173 @@ logger.propagate = False
 # use it:
 logger.info("War module initialised")
 
+
+class WarManager:
+    def __init__(self, screen, attacker, defender, fonts, on_result=None):
+        self.screen = screen
+        self.font, self.small_font, self.tiny_font, self.num_font = fonts
+        self.on_result = on_result
+        self.war = War(screen, attacker, defender)
+        self.attacker = attacker
+        self.defender = defender
+        self.face_down_attk = []
+        self.face_down_def = []
+        self.attacker_card = None
+        self.defender_card = None
+        self.round_msg = None
+        self.game_over = False
+        self.winner = None
+
+        self.btn_rect = pygame.Rect(0, 0, 240, 80)
+        self.btn_rect.center = (screen.get_width() // 2, screen.get_height() // 2)
+
+    def is_active(self):
+        return not self.game_over
+
+    def handle_event(self, event):
+        mouse = pygame.mouse.get_pos()
+        hover = self.btn_rect.collidepoint(mouse)
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and hover:
+            if self.game_over:
+                # War is over. Notify parent via callback and reset
+                if self.on_result:
+                    self.on_result(self.winner)
+                self.reset()
+                return
+            step = self.war.next_round()
+            phase = step["phase"]
+            if phase == "war_face_down":
+                x, y = self.random_pos(0, self.screen.get_width(), self.screen.get_height(), len(self.face_down_attk))
+                self.face_down_attk.append((x, y))
+                x, y = self.random_pos(1, self.screen.get_width(), self.screen.get_height(), len(self.face_down_def))
+                self.face_down_def.append((x, y))
+                rd = step.get("face_downs_remaining", 0)
+                self.round_msg = f"War! {rd} face-down remaining…"
+            elif phase == "war_battle":
+                self.attacker_card = step.get("attacker_card")
+                self.defender_card = step.get("defender_card")
+                winner = step.get("winner")
+                if winner is None:
+                    fd_left = step.get("face_downs_remaining", 0)
+                    self.round_msg = "Tie again! Starting new war…" if fd_left else "Tie again!…"
+                else:
+                    winner_name = winner.name if winner is not None else ""
+                    self.round_msg = f"{winner_name} wins the war!"
+                    self.face_down_attk.clear()
+                    self.face_down_def.clear()
+            elif phase == "normal":
+                self.attacker_card = step["attacker_card"]
+                self.defender_card = step["defender_card"]
+                winner = step.get("winner")
+                if winner is None:
+                    fd_left = step.get("face_downs_remaining", 0)
+                    self.round_msg = "Tie! Starting war…" if fd_left else "Tie!…"
+                else:
+                    winner_name = winner.name if winner is not None else ""
+                    self.round_msg = f"{winner_name} wins the round!"
+                    self.face_down_attk.clear()
+                    self.face_down_def.clear()
+            has_won, vict = self.war.has_won()
+            if has_won:
+                self.game_over = True
+                self.winner = vict
+                self.attacker_card = self.defender_card = None
+                winner_name = vict.name if vict is not None else ""
+                self.round_msg = f"{winner_name} wins the war! Click to continue."
+
+
+    def update(self, dt):
+        pass  # placeholder for any future animation/timing
+
+    def draw(self):
+        # --- Deck info ---
+        atk_d, atk_s = len(self.war.attacker_hand.cards), len(self.war.attacker_hand.spoils)
+        def_d, def_s = len(self.war.defender_hand.cards), len(self.war.defender_hand.spoils)
+        atk_label = self.small_font.render(f"Attacker ({self.attacker.name})", True, (200, 255, 255))
+        atk_rect = atk_label.get_rect(center=(self.screen.get_width() // 2, 40))
+        self.screen.blit(atk_label, atk_rect)
+        atk_info = self.tiny_font.render(f"Deck: {atk_d}  Spoils: {atk_s}  Total: {atk_d + atk_s}", True, (200, 255, 255))
+        self.screen.blit(atk_info, atk_info.get_rect(center=(self.screen.get_width() // 2, 65)))
+        def_label = self.small_font.render(f"Defender ({self.defender.name})", True, (255, 210, 180))
+        self.screen.blit(def_label, def_label.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() - 80)))
+        def_info = self.tiny_font.render(f"Deck: {def_d}  Spoils: {def_s}  Total: {def_d + def_s}", True, (255, 210, 180))
+        self.screen.blit(def_info, def_info.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() - 50)))
+        # --- Face down cards ---
+        for pos in self.face_down_attk:
+            pygame.draw.rect(self.screen, (90, 90, 120), (*pos, 240, 180), border_radius=12)
+        for pos in self.face_down_def:
+            pygame.draw.rect(self.screen, (120, 100, 90), (*pos, 240, 180), border_radius=12)
+        # --- Played cards ---
+        if self.attacker_card:
+            img = self.load_image(self.attacker_card)
+            ir = img.get_rect(center=(self.screen.get_width() // 2, 180))
+            self.screen.blit(img, ir)
+            num = self.num_font.render(str(self.attacker_card.value + 1), True, (20, 20, 30))
+            self.screen.blit(num, num.get_rect(topright=(ir.right - 10, ir.top + 6)))
+        if self.defender_card:
+            img = self.load_image(self.defender_card)
+            ir = img.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() - 200))
+            self.screen.blit(img, ir)
+            num = self.num_font.render(str(self.defender_card.value + 1), True, (20, 20, 30))
+            self.screen.blit(num, num.get_rect(topright=(ir.right - 10, ir.top + 6)))
+        # --- Message and title ---
+        if self.round_msg:
+            txt = self.font.render(self.round_msg, True, (255, 255, 220))
+            self.screen.blit(txt, txt.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2 - 90)))
+        # --- Button ---
+        mouse = pygame.mouse.get_pos()
+        hover = self.btn_rect.collidepoint(mouse)
+        btn_label = (
+            f"{self.winner.capitalize()} wins! (Continue)" if self.game_over else
+            "Next Round"
+        )
+        self.draw_button(self.screen, self.btn_rect, btn_label, self.font, hover)
+
+    def draw_button(self, screen, rect, text, font, hovered):
+        color = (120, 160, 240) if hovered else (80, 120, 200)
+        pygame.draw.rect(screen, color, rect, border_radius=18)
+        label = font.render(text, True, (255, 255, 255))
+        label_rect = label.get_rect(center=rect.center)
+        screen.blit(label, label_rect)
+
+    def load_image(self, card):
+        try:
+            img = pygame.image.load(card.image).convert_alpha()
+            return pygame.transform.smoothscale(img, (240, 180))
+        except Exception:
+            surf = pygame.Surface((240, 180), pygame.SRCALPHA)
+            surf.fill((90, 90, 110))
+            return surf
+
+    def random_pos(self, side, scr_w, scr_h, n):
+        if side == 0:
+            x_left = 40 + n * 10
+            x_right = scr_w // 2 - 240 - 40
+            y_top = 120
+            y_bot = scr_h // 2 - 180 - 60
+        else:
+            x_left = scr_w // 2 + 40
+            x_right = scr_w - 240 - 40 - n * 10
+            y_top = scr_h // 2 + 80
+            y_bot = scr_h - 180 - 120
+
+        if x_left > x_right:
+            x_left, x_right = x_right, x_left
+        if y_top > y_bot:
+            y_top, y_bot = y_bot, y_top
+
+        x = random.randint(x_left, x_right)
+        y = random.randint(y_top, y_bot)
+        return x, y
+
+    def reset(self):
+        self.face_down_attk.clear()
+        self.face_down_def.clear()
+        self.attacker_card = None
+        self.defender_card = None
+        self.round_msg = None
+        self.game_over = False
+        self.winner = None
 
 class Card:
     def __init__(self, value):
@@ -88,7 +257,6 @@ class Hand:
         """Draws a single Card object and returns it"""
         self.check_empty()
         card = self.cards.pop()
-        logger.info(f"Drew card: {card.value}")
         return card
     
     def draw_num(self, num_cards):
@@ -134,6 +302,8 @@ class War:
         random.shuffle(self.deck)
 
         # Deal hands for each side based on support (number of cards)
+        self.attacker = attacker
+        self.defender = defender
         self.attacker_length = attacker.war_power
         self.defender_length = defender.war_power
         self.attacker_hand = Hand(self.attacker_length, self.deck)
@@ -150,13 +320,13 @@ class War:
     def has_won(self):
          """Determines if the game is over
          Returns:
-             (True/False, attacker/defender (String))"""
+             (True/False, attacker/defender)"""
          if self.attacker_hand.is_loss():
-            logger.info("Defender has won the war!")
-            return (True, "defender")
+            logger.info(f"Defender {self.defender.name} has won the war!")
+            return (True, self.defender)
          elif self.defender_hand.is_loss():
-            logger.info("Attacker has won the war!")
-            return (True, "attacker")
+            logger.info(f"Attacker {self.attacker.name} has won the war!")
+            return (True, self.attacker)
          else:
             return (False, "None")
     
@@ -203,21 +373,23 @@ class War:
                 return step
     
             attacker_card = self.attacker_hand.draw()
+            logger.info(f"Attacker {self.attacker.name} drew card: {attacker_card.value}")
             defender_card = self.defender_hand.draw()
+            logger.info(f"Defender {self.defender.name} drew card: {defender_card.value}")
             self.spoils_pile += [attacker_card, defender_card]
             self.last_attacker_card = attacker_card
             self.last_defender_card = defender_card
-            logger.info(f"(WAR) Attacker: {attacker_card.value}, Defender: {defender_card.value}")
+            logger.info(f"(WAR) Attacker {self.attacker.name}: {attacker_card.value}, Defender {self.defender.name}: {defender_card.value}")
     
             # Resolve outcome
             if attacker_card.wins(defender_card):
                 self.attacker_hand.add_spoils(self.spoils_pile)
-                winner = "attacker"
+                winner = self.attacker
                 self.phase = "normal"
                 self.spoils_pile = []
             elif defender_card.wins(attacker_card):
                 self.defender_hand.add_spoils(self.spoils_pile)
-                winner = "defender"
+                winner = self.defender
                 self.phase = "normal"
                 self.spoils_pile = []
             else:
@@ -245,13 +417,13 @@ class War:
         defender_card = self.defender_hand.draw()
         self.last_attacker_card = attacker_card
         self.last_defender_card = defender_card
-        logger.info(f"Attacker plays: {attacker_card.value}, Defender plays: {defender_card.value}")
+        logger.info(f"Attacker {self.attacker.name} plays: {attacker_card.value}, Defender {self.defender.name} plays: {defender_card.value}")
         spoils = [attacker_card, defender_card]
         if attacker_card.wins(defender_card):
             self.attacker_hand.add_spoils(spoils)
             return {
                 "phase": "normal",
-                "winner": "attacker",
+                "winner": self.attacker,  # fix here
                 "attacker_card": attacker_card,
                 "defender_card": defender_card
             }
@@ -259,7 +431,7 @@ class War:
             self.defender_hand.add_spoils(spoils)
             return {
                 "phase": "normal",
-                "winner": "defender",
+                "winner": self.defender,  # fix here
                 "attacker_card": attacker_card,
                 "defender_card": defender_card
             }
@@ -282,7 +454,7 @@ class War:
     def battle(self):
          """Conduct a full game of War
          Returns: 
-             "attacker" if attacker won and "defender" if defender won"""
+             attacker if attacker won and defender if defender won"""
          won, winner = self.has_won()
          while not won:
              self.next_round()

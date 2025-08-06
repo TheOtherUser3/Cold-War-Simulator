@@ -9,7 +9,7 @@ class Country:
         self.arms_race = 0  # 0-4
         self.space_race = 0  # 0-4
         self.pending_bolster_reward = 0   # To be applied at start of next turn
-        self.war_power = 50   
+        self.war_power = 15   
         self.free_war = False
 
     def __repr__(self):
