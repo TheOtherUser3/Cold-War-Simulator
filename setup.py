@@ -15,7 +15,7 @@ def init_countries_and_blocs():
     warsaw_countries = [
         ("USSR", 1310), ("China", 595), ("Poland", 110), ("East Germany", 90),
         ("Czechoslovakia", 63), ("Hungary", 38), ("Romania", 34), ("Bulgaria", 12),
-        ("Tajikistan", 8), ("North Korea", 26)
+        ("North Korea", 26)
     ]
 
     non_aligned_countries = [

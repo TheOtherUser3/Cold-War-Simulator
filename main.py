@@ -45,7 +45,7 @@ def main():
                 screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
                 btn_rect.center = (screen.get_width() // 2, screen.get_height() // 2)
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and hover and show_title:
-                #Game.coup_spinner(Game.country("USA"), Game.country("USSR"))
+                #Game.coup_spinner(Game.country("United Kingdom"), Game.country("Afghanistan"))
                 #Game.coin_flip()
                 show_title = False
 
