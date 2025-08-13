@@ -259,7 +259,7 @@ class TopBarManager:
                 col = CYAN if kind == "Space" else YELLOW
                 pygame.draw.rect(self.surface, col, r.inflate(-4, -4), border_radius=4)
         return x + total_w
-
+    
     def _draw_defcon(self) -> None:
         box = self._defcon_rect
         pygame.draw.rect(self.surface, (38, 46, 62), box, border_radius=10)
@@ -269,7 +269,8 @@ class TopBarManager:
         y = box.y + 6 + title.get_height() + 4
         size = 20
         gap = 8
-        # draw 5 squares labeled 5..1 left->right (safe->danger)
+    
+        # draw 5 squares labeled 5..1 left->right (safe -> danger)
         squares = []
         for i, lvl in enumerate([5, 4, 3, 2, 1]):
             r = pygame.Rect(box.x + 12 + i * (size + gap), y, size, size)
@@ -277,41 +278,51 @@ class TopBarManager:
             base_col = (64, 76, 96)
             pygame.draw.rect(self.surface, base_col, r, border_radius=6)
             pygame.draw.rect(self.surface, (255, 255, 255, 30), r, 1, border_radius=6)
-        # highlight current level and draw danger bar to the RIGHT (toward 1)
+    
         cur_rect = None
         for r, lvl in squares:
             if lvl == self.defcon:
                 cur_rect = r
                 break
         if cur_rect:
-            danger_rect = pygame.Rect(cur_rect.right + 4, cur_rect.y + cur_rect.h//2 - 3, 
-                                      box.right - cur_rect.right - 16, 6)
+            # danger line should fill everything to the LEFT of the current box
+            left_start = box.x + 12
+            danger_rect = pygame.Rect(
+                left_start,
+                cur_rect.y + cur_rect.h // 2 - 3,
+                max(0, cur_rect.left - left_start - 4),
+                6,
+            )
             if danger_rect.w > 0:
                 pygame.draw.rect(self.surface, (160, 50, 50), danger_rect, border_radius=3)
+    
         for r, lvl in squares:
             if lvl == self.defcon:
                 fill = self._defcon_color(lvl)
                 pygame.draw.rect(self.surface, fill, r.inflate(-4, -4), border_radius=4)
                 pygame.draw.rect(self.surface, (255, 255, 255, 50), r, 2, border_radius=6)
             else:
-                # shade right side (more dangerous levels) redder
-                if lvl > self.defcon:
-                    shade = (72, 80, 96)
-                else:
+                if cur_rect and r.left < cur_rect.left:
                     shade = (110, 60, 60)
+                else:
+                    shade = (72, 80, 96)
                 pygame.draw.rect(self.surface, shade, r.inflate(-6, -6), border_radius=4)
+    
         num = self._font_big.render(str(self.defcon), True, (236, 241, 246))
         self.surface.blit(num, (box.right - num.get_width() - 16, box.y + (box.h - num.get_height()) // 2))
         self._hit_defcon = box.copy()
-
-    @staticmethod
-    def _defcon_color(lvl: int) -> Tuple[int, int, int]:
-        # 5=safe (green) ... 1=danger (red)
-        palette = [RED, (220, 90, 60), ORANGE, (150, 180, 80), GREEN]
-        idx = max(1, min(5, lvl))
-        return palette[5 - idx]
-
-    # -------------------------- Hover Help --------------------------
+    
+    def _defcon_color(self, lvl: int) -> tuple[int, int, int]:
+        palette_by_level = {
+            5: GREEN,
+            4: (150, 180, 80),
+            3: ORANGE,
+            2: (220, 90, 60),
+            1: RED,
+        }
+        return palette_by_level[max(1, min(5, int(lvl)))]
+    
+        # -------------------------- Hover Help --------------------------
     def _update_hover(self, mouse: Tuple[int, int]) -> None:
         self._hover = None
         if self._hit_pp.collidepoint(mouse):
@@ -394,8 +405,8 @@ if __name__ == "__main__":
     def on_click_space(name: Optional[str]):
         print(f"[TopBar] Space menu placeholder for: {name}")
         
-    Game = GameState(screen, blocs, countries, countries["USA"])
-    Game.country("USA").arms_race = 2
+    Game = GameState(screen, blocs, countries, countries["USSR"])
+    Game.country("USSR").arms_race = 2
     Game.change_defcon(-1)
     
     hud = TopBarManager(screen, Game, on_click_arms=on_click_arms, on_click_space=on_click_space)
@@ -414,9 +425,9 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                Game.country("USA").arms_race = 3
-                Game.country("USA").space_race = 2
-                Game.country("USA").pp = 100
+                Game.country("USSR").arms_race = 3
+                Game.country("USSR").space_race = 2
+                Game.country("USSR").pp = 100
                 Game.defcon = 2
 
 
