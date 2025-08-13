@@ -9,6 +9,7 @@ from War import WarManager
 from coin import CoinManager, Coin
 from quiz import QuizManager
 
+
 COUP_DIE = Dice([
     DiceFace("DEFCON lowers"),
     DiceFace("Transfer Country"),
@@ -55,18 +56,20 @@ CLASSIFIEDDOCS_DIE = Dice([
 ])
 
 class GameState:
-    def __init__(self, screen, blocs, countries, max_turns=10):
+    def __init__(self, screen, blocs, countries, currently_playing, max_turns=10):
         self.turn = 1
         self.max_turns = max_turns
         self.defcon = 5
         self.blocs = blocs
         self.countries = countries
         self.victory = None
+        self.currently_playing = currently_playing
         self.action_log = []
         self.screen = screen
         self.spinner_mgr = SpinnerManager(screen, Spinner(OPTIONS))
         self.dice_mgr = DiceManager(screen)
         self.coin_mgr = CoinManager(self.screen)
+        self.quiz_mgr = QuizManager(self.screen, self.get_currently_playing)
 
 
         # Phases state
@@ -75,7 +78,21 @@ class GameState:
         self.war_moves = []         # [(attacker, defender)]
         self.support_moves = []     # [(supporting_country, supported_country, amount)]
         self.espionage_results = []
+    
+    def change_defcon(self, delta):
+        """Changes defcon by specified amount and checks for game over"""
+        logging.info(f"change_defcon called with delta {delta}, current {self.defcon} returned: {max(1, min(5, self.defcon + delta))}")
+        self.defcon = max(1, min(5, self.defcon + delta))
+        #TO DO: ADD GAME OVER CHECK/UI CALL ONCE THAT IS IMPLEMENTED
 
+    def get_defcon(self):
+        logging.info(f"get_defcon called, returned: {self.defcon}")
+        return self.defcon
+    
+    def get_currently_playing(self):
+        logging.info(f"get_currently_playing called, returned country {self.currently_playing.name}")
+        return self.currently_playing
+    
     def run_bloc_turn(self, bloc):
         print(f"\n=== {bloc.name} Phase ===")
         self.collect_espionage_choices(bloc)
@@ -224,23 +241,46 @@ class GameState:
         self.action_log += log_msg
         return True
 
+
+    def coin_flip(self):
+        """Wrapper function to flip the DEFCON Coin and apply its effects"""
+        logging.info("coin_flip: starting DEFCON coin flip")
+        def on_result(idx: int, label: str) -> None:
+            before = self.defcon
+            delta = 1 if idx == 0 else -1     # +1 on RAISE, -1 on LOWER
+            after = max(1, min(5, self.defcon + delta))
+            logging.info(f"coin_flip: result idx={idx} label='{label}' delta={delta} defcon {before} -> {after}")
+            self.defcon = after
+        self.coin_mgr.start_flip(Coin.defcon(), on_result=on_result)
+    
+    
+    # --- DICE ---
+    
     def coup_die(self, actor, target):
         """actor rolls coup dice on target"""
+        logging.info(f"coup_die: start actor={actor.name} target={target.name}")
         def _on_result(idx: int, label: str) -> None:
+            logging.info(f"coup_die: result idx={idx} label='{label}'")
             match idx:
                 case 0:
                     self.defcon -= 1
-                case 1:  
+                    logging.info(f"coup_die: DEFCON lowered -> {self.defcon}")
+                case 1:
                     target.bloc = actor.bloc
-                case 2:  
-                    target.pp = int(target.pp* 0.9)
-                case 3:  
+                    logging.info(f"coup_die: {target.name} transferred to bloc {actor.bloc.name}")
+                case 2:
+                    before = target.pp
+                    target.pp = int(target.pp * 0.9)
+                    logging.info(f"coup_die: {target.name} loses 10% PP {before} -> {target.pp}")
+                case 3:
+                    logging.info("coup_die: rolling Classified Docs due to result")
                     self.classifieddocs_die(actor, target)
-                case 4:  
-                    return #failed coup after successful coup, no effect
-                case 5:  
+                case 4:
+                    logging.info("coup_die: failed coup (no effect)")
+                    return
+                case 5:
                     actor.war_power += 1
-
+                    logging.info(f"coup_die: {actor.name} +1 War Power -> {actor.war_power}")
         self.dice_mgr.start_roll(
             COUP_DIE,
             on_result=_on_result,
@@ -249,26 +289,35 @@ class GameState:
             target_name=target.name,
         )
     
+    
     def espionage_die(self, actor, target):
         """actor rolls espionage dice on target"""
+        logging.info(f"espionage_die: start actor={actor.name} target={target.name}")
         def _on_result(idx: int, label: str) -> None:
+            logging.info(f"espionage_die: result idx={idx} label='{label}'")
             match idx:
                 case 0:
                     self.defcon -= 1
-                case 1:  
+                    logging.info(f"espionage_die: DEFCON lowered -> {self.defcon}")
+                case 1:
                     if target.space_race > actor.space_race:
                         actor.space_race += 1
-                case 2:  
+                        logging.info(f"espionage_die: {actor.name} steals Space Race tier -> {actor.space_race}")
+                case 2:
                     if target.arms_race > actor.arms_race:
                         actor.arms_race += 1
-                case 3:  
+                        logging.info(f"espionage_die: {actor.name} steals Arms Race tier -> {actor.arms_race}")
+                case 3:
                     self.defcon += 1
-                case 4:  
-                    actor.pp = int(actor.pp + target.pp*0.10)
-                    target.pp = int(target.pp* 0.9)
-                case 5:  
-                    self.classifieddocs_die(actor,target)
-
+                    logging.info(f"espionage_die: DEFCON raised -> {self.defcon}")
+                case 4:
+                    before_a, before_t = actor.pp, target.pp
+                    actor.pp = int(actor.pp + target.pp * 0.10)
+                    target.pp = int(target.pp * 0.9)
+                    logging.info(f"espionage_die: PP transfer actor {before_a}->{actor.pp} target {before_t}->{target.pp}")
+                case 5:
+                    logging.info("espionage_die: rolling Classified Docs due to result")
+                    self.classifieddocs_die(actor, target)
         self.dice_mgr.start_roll(
             ESPIONAGE_DIE,
             on_result=_on_result,
@@ -276,27 +325,36 @@ class GameState:
             actor_name=actor.name,
             target_name=target.name,
         )
-            
+    
+    
     def destabilize_die(self, actor, target):
         """actor rolls destabilize dice on target"""
+        logging.info(f"destabilize_die: start actor={actor.name} target={target.name}")
         def _on_result(idx: int, label: str) -> None:
+            logging.info(f"destabilize_die: result idx={idx} label='{label}'")
             match idx:
                 case 0:
-                    #Block the rare case Nicaragua is rolling on itself from Current Event Card
                     if actor != target:
+                        logging.info("destabilize_die: result starts war")
                         self.start_war(actor, target)
-                case 1:  
+                case 1:
+                    before = target.war_power
                     target.war_power -= 2
-                case 2:  
+                    logging.info(f"destabilize_die: {target.name} war power {before}->{target.war_power}")
+                case 2:
+                    logging.info("destabilize_die: guaranteed coup roll")
                     self.coup_die(actor, target)
-                case 3:  
+                case 3:
                     self.defcon -= 1
-                case 4:  
+                    logging.info(f"destabilize_die: DEFCON lowered -> {self.defcon}")
+                case 4:
+                    logging.info("destabilize_die: guaranteed espionage roll")
                     self.espionage_die(actor, target)
-                case 5:  
-                    actor.pp = int(actor.pp + target.pp*0.10)
-                    target.pp = int(target.pp* 0.9)
-
+                case 5:
+                    before_a, before_t = actor.pp, target.pp
+                    actor.pp = int(actor.pp + target.pp * 0.10)
+                    target.pp = int(target.pp * 0.9)
+                    logging.info(f"destabilize_die: PP transfer actor {before_a}->{actor.pp} target {before_t}->{target.pp}")
         self.dice_mgr.start_roll(
             DESTABILIZE_DIE,
             on_result=_on_result,
@@ -305,33 +363,42 @@ class GameState:
             target_name=target.name,
         )
     
+    
     def waroutcome_die(self, actor, target):
         """actor rolls destabilize dice on target
         Since this always rolls after a war, benefits and losses of war are applied here to the winner and loser"""
+        logging.info(f"waroutcome_die: start actor={actor.name} target={target.name}")
         def _on_result(idx: int, label: str) -> None:
+            logging.info(f"waroutcome_die: result idx={idx} label='{label}'")
             match idx:
                 case 0:
                     target.bloc = actor.bloc
-                case 1:  
-                    actor.pp = int(actor.pp + target.pp*0.10)
-                    target.pp = int(target.pp* 0.9)
-                case 2:  
+                    logging.info(f"waroutcome_die: transfer country -> {target.name} to bloc {actor.bloc.name}")
+                case 1:
+                    before_a, before_t = actor.pp, target.pp
+                    actor.pp = int(actor.pp + target.pp * 0.10)
+                    target.pp = int(target.pp * 0.9)
+                    logging.info(f"waroutcome_die: reparations extra 10%% actor {before_a}->{actor.pp} target {before_t}->{target.pp}")
+                case 2:
                     if target.arms_race > actor.arms_race:
                         actor.arms_race += 1
-                case 3:  
-                    #imbroglio roll means no winner or loser, regardless of war outcome.  All rewards/losses negated
+                        logging.info(f"waroutcome_die: steal Arms Race tier -> {actor.arms_race}")
+                case 3:
+                    logging.info("waroutcome_die: Imbroglio — negating other war effects")
                     return
-                case 4:  
-                    reperations = min(50, target.pp)
-                    target.pp -= reperations
-                    actor.pp += reperations
-                case 5:  
+                case 4:
+                    rep = min(50, target.pp)
+                    target.pp -= rep
+                    actor.pp += rep
+                    logging.info(f"waroutcome_die: war reparations {rep} PP; actor->{actor.pp}, target->{target.pp}")
+                case 5:
                     self.defcon -= 1
-            #Other benefits/losses of war handled here
+                    logging.info(f"waroutcome_die: DEFCON lowered -> {self.defcon}")
+            # Other benefits/losses of war handled here
             actor.pp += 300
             penalty = min(50, target.pp)
             target.pp -= penalty
-                
+            logging.info(f"waroutcome_die: post-war awards actor +300PP, target -{penalty}PP (actor->{actor.pp}, target->{target.pp})")
         self.dice_mgr.start_roll(
             WAROUTCOME_DIE,
             on_result=_on_result,
@@ -339,26 +406,35 @@ class GameState:
             actor_name=actor.name,
             target_name=target.name,
         )
-
+    
     
     def classifieddocs_die(self, actor, target):
         """actor rolls classified docs dice on target"""
+        logging.info(f"classifieddocs_die: start actor={actor.name} target={target.name}")
         def _on_result(idx: int, label: str) -> None:
+            logging.info(f"classifieddocs_die: result idx={idx} label='{label}'")
             match idx:
                 case 0:
                     self.defcon += 1
-                case 1:  
+                    logging.info(f"classifieddocs_die: DEFCON raised -> {self.defcon}")
+                case 1:
                     if target.space_race > actor.space_race:
                         actor.space_race += 1
-                case 2:  
+                        logging.info(f"classifieddocs_die: steal Space Race tier -> {actor.space_race}")
+                case 2:
+                    before = actor.pp
                     actor.pp = int(actor.pp * 1.15)
-                case 3:  
+                    logging.info(f"classifieddocs_die: gain 15% PP {before}->{actor.pp}")
+                case 3:
+                    before = actor.war_power
                     actor.war_power += 2
-                case 4:  
+                    logging.info(f"classifieddocs_die: +2 War Power {before}->{actor.war_power}")
+                case 4:
                     actor.free_war = True
-                case 5:  
+                    logging.info("classifieddocs_die: Free War Cost enabled")
+                case 5:
+                    logging.info("classifieddocs_die: rolling Destabilize due to result")
                     self.destabilize_die(actor, target)
-
         self.dice_mgr.start_roll(
             CLASSIFIEDDOCS_DIE,
             on_result=_on_result,
@@ -366,15 +442,17 @@ class GameState:
             actor_name=actor.name,
             target_name=target.name,
         )
-        
+    
+    
+    # --- SPINNER ---
+    
     def coup_spinner(self, actor, target):
         """
         Actor rolls the coup spinner on target country.  Applies all effects after
-        
-        Returns true if successful otherwise false
         """
-        
+        logging.info(f"coup_spinner: start actor={actor.name} target={target.name}")
         def _on_result(idx: int, label: str) -> None:
+            logging.info(f"coup_spinner: result idx={idx} label='{label}'")
             match idx:
                 case 0:  # Failed Coup — Roll Classified Docs Die
                     self.classifieddocs_die(actor, target)
@@ -384,21 +462,78 @@ class GameState:
                      self.coup_die(actor, target)
                      self.destabilize_die(actor, target)
                 case 3:  # Failed Coup — Pay 10 % extra PP
+                    before = actor.pp
                     actor.pp = int(actor.pp * 0.9)
+                    logging.info(f"coup_spinner: actor pays 10% {before}->{actor.pp}")
                 case 4:  # Failed Coup — Roll Destabilize Die
                     self.destabilize_die(actor, target)
                 case 5:  # Failed Coup — Recoup coup cost (100)
                     actor.pp += 100
+                    logging.info(f"coup_spinner: actor recoups 100 PP -> {actor.pp}")
                 case 6:  # Successful Coup — Roll Coup + Classified Docs
                     self.coup_die(actor, target)
                     self.classifieddocs_die(actor, target)
-
         self.spinner_mgr.start_spin(
             on_result=_on_result,
             title="Coup Spinner",
             actor_name=actor.name,
             target_name=target.name,
         )
+    
+    
+    # --- QUIZ ---
+    
+    def quiz_open(
+        self,
+        question: str,
+        correct_is_yes: bool,
+        target,  # Country object OR country name string
+        *,
+        effects_if_correct: str = "",
+        effects_if_wrong: str = "",
+        on_correct=None,
+        on_wrong=None,
+        observer_auto_answer: bool | None = None,
+        ai_delay_range_ms=(1200, 2600),
+    ) -> bool:
+        """Open a targeted quiz with uniform behavior.
+    
+        - Only the target country can answer if it's their turn and not AI.
+        - If target is AI, a random answer is chosen after a short delay.
+        - If target is a remote human, call `quiz_force_answer(True/False)` when you receive their choice.
+        - `on_correct` / `on_wrong` (optional) are executed *after dismissal*.
+        """
+        if isinstance(target, str):
+            logging.info(f"quiz_open: resolving target by name '{target}'")
+            target = self.country(target)
+    
+        logging.info(
+            "quiz_open: start question=%r correct_is_yes=%s target=%s effects_if_correct=%r effects_if_wrong=%r"
+            % (question, correct_is_yes, getattr(target, 'name', target), effects_if_correct, effects_if_wrong)
+        )
+    
+        def _on_result(selected_yes: bool, correct_yes: bool, is_correct: bool):
+            logging.info(
+                f"quiz_open: result selected_yes={selected_yes} correct_yes={correct_yes} is_correct={is_correct}"
+            )
+            if is_correct:
+                if callable(on_correct):
+                    on_correct()
+            else:
+                if callable(on_wrong):
+                    on_wrong()
+    
+        return self.quiz_mgr.start_quiz(
+            question=question,
+            correct_is_yes=correct_is_yes,
+            target_country=target,
+            on_result=_on_result,
+            effects_if_correct=effects_if_correct,
+            effects_if_wrong=effects_if_wrong,
+            ai_delay_range_ms=ai_delay_range_ms,
+            observer_auto_answer=observer_auto_answer,
+        )
+    
     
     def start_war(self, attacker, defender):
         fonts = (
@@ -407,26 +542,22 @@ class GameState:
             pygame.font.SysFont("Segoe UI", 18),
             pygame.font.SysFont("Segoe UI", 40, bold=True),
         )
-        # TO DO: ADD CALL TO INITIALIZE WAR HERE BY GIVING COUNTRIES OPTION TO DONATE PP
+        logging.info(f"start_war: attacker={attacker.name} defender={defender.name}")
+        #TO DO ADD WAR INITIALIZATION LOGIC + CALL HERE FOR COUNTRY AID
         def on_war_finished(winner):
+            logging.info(f"start_war: finished winner={getattr(winner, 'name', winner)}")
             if winner == attacker:
                 actor, target = attacker, defender
             else:
                 actor, target = defender, attacker
-            # Start war outcome die roll with winner/loser
+            logging.info(f"start_war: launching waroutcome_die actor={actor.name} target={target.name}")
             self.waroutcome_die(actor, target)
     
         self.war_mgr = WarManager(self.screen, attacker, defender, fonts, on_result=on_war_finished)
-    
-    def coin_flip(self):
-        """Wrapper function to flip the DEFCON Coin and apply its effects"""
-        def on_result(idx: int, label: str) -> None:
-            delta = 1 if idx == 0 else -1     # +1 on RAISE, -1 on LOWER
-            self.defcon = max(1, min(5, self.defcon + delta))  # don't let over 5 or under 1
-        self.coin_mgr.start_flip(Coin.defcon(), on_result=on_result)
-            
+        
     def country(self, name):
         """To be used externally to extract a country object by name e.g. 'USA' or 'Brazil'"""
+        logging.info(f"country() called on {name}")
         return self.countries[name]
     
     

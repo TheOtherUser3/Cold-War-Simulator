@@ -28,6 +28,8 @@ def main():
     clock = pygame.time.Clock()
     Game = GameState(screen, blocs, countries)
 
+    tooltip_font = pygame.font.SysFont("consolas,menlo,dejavusansmono,monospace", 18)
+
     font = pygame.font.SysFont("Segoe UI", 36)
     btn_rect = pygame.Rect(0, 0, BTN_W, BTN_H)
     btn_rect.center = (WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)

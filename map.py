@@ -14,6 +14,9 @@ WARSAW_LIGHT = (182, 86, 86)
 NONALIGNED_TAN = (132, 124, 96)
 OUT_OF_PLAY_GRAY = (140, 142, 146)
 BORDER_RGBA = (0, 0, 0, 255)  # solid black borders
+TOOLTIP_BG: Color = (24, 30, 36)       # charcoal panel
+TOOLTIP_BORDER: Color = (180, 186, 192) # desaturated light border
+TOOLTIP_TEXT: Color = (234, 238, 242)   # off‑white text
 
 
 # ---------------------------- file helpers ----------------------------
@@ -48,12 +51,14 @@ class MapManager:
         self,
         surface: pygame.Surface,
         countries: Dict[str, object],
+        tooltip_font: pygame.font.Font,
         idmap_path: Optional[str] = None,
         mapping_path: Optional[str] = None,
         on_click: Optional[Callable[[Optional[object]], None]] = None,
     ) -> None:
         self.surface = surface
         self.on_click = on_click
+        self.tooltip_font = tooltip_font
 
         idmap_path = idmap_path or _assets_path("world_idmap.png")
         mapping_path = mapping_path or _assets_path("id_to_country.json")
@@ -268,6 +273,89 @@ class MapManager:
                                 break
             self.borders.unlock()
         self._cache_size = None
+    
+    def country_name_at_point(self, pos: Tuple[int, int]) -> Optional[str]:
+        """Return the *name string* at screen-space pos (None for ocean/out of bounds).
+        Unlike country_at_point, this shows **any mapped country name**, even if non-playable,
+        which is better for students exploring the map.
+        """
+        if not hasattr(self, "_dest_rect") or not self._dest_rect.collidepoint(pos):
+            return None
+        sx = (pos[0] - self._dest_rect.left) / self._dest_rect.w
+        sy = (pos[1] - self._dest_rect.top) / self._dest_rect.h
+        x = min(self.map_w - 1, max(0, int(sx * self.map_w)))
+        y = min(self.map_h - 1, max(0, int(sy * self.map_h)))
+        rgb = self.id_surface.get_at((x, y))[:3]
+        name = self.color_to_name.get(rgb)
+        if not name or name == "__OCEAN__":
+            return None
+        return name
+    
+
+    def draw_hover_tooltip(self, surface: pygame.Surface, mouse_pos: Tuple[int, int], font: Optional[pygame.font.Font] = None) -> None:
+        """Render a Cold War–style tooltip just up-right of the cursor with the country name.
+    
+        - Hides on ocean/out of bounds.
+        - Stays on-screen (repositions left/up if near edges).
+        - Independent of your draw() scaling; uses country_name_at_point() for hit test.
+    
+        Parameters
+        ----------
+        surface : pygame.Surface
+            The primary screen to draw onto (same you pass to MapManager).
+        mouse_pos : (x, y)
+            Current mouse coordinates in screen space.
+        font : pygame.font.Font or None
+            Optional font. If None, a legible default will be created.
+        """
+        name = self.country_name_at_point(mouse_pos)
+        if not name:
+            return
+    
+        # Prepare font
+        if font is None:
+            font = pygame.font.SysFont("consolas,menlo,dejavusansmono,monospace", 18, bold=False)
+    
+        text_surf = font.render(name, True, TOOLTIP_TEXT)
+        tw, th = text_surf.get_size()
+        pad_x, pad_y = 10, 8
+        box_w, box_h = tw + pad_x * 2, th + pad_y * 2 + 3  # +3 for accent line
+    
+        # Desired position: a little up-right of the cursor
+        mx, my = mouse_pos
+        ox, oy = 14, -18
+        x = mx + ox
+        y = my + oy - box_h
+    
+        # Keep fully on-screen
+        sw, sh = surface.get_size()
+        if x + box_w > sw - 6:
+            x = sw - box_w - 6
+        if x < 6:
+            x = 6
+        if y < 6:
+            y = my + 18  # place below the cursor if not enough space above
+            if y + box_h > sh - 6:
+                y = sh - box_h - 6
+    
+        # Panel
+        panel = pygame.Surface((box_w, box_h), pygame.SRCALPHA)
+        panel.fill((0,0,0,0))
+        # background
+        pygame.draw.rect(panel, TOOLTIP_BG, panel.get_rect(), border_radius=6)
+        # border
+        pygame.draw.rect(panel, TOOLTIP_BORDER, panel.get_rect(), width=1, border_radius=6)
+        # accent line at the top
+        pygame.draw.line(panel, self._bloc_palette(name), (6, 5), (box_w - 6, 5), 2)
+    
+        # text
+        panel.blit(text_surf, (pad_x, pad_y + 4))
+    
+        # subtle drop shadow
+        shadow = pygame.Surface((box_w, box_h), pygame.SRCALPHA)
+        pygame.draw.rect(shadow, (0,0,0,90), shadow.get_rect(), border_radius=6)
+        surface.blit(shadow, (x+2, y+2))
+        surface.blit(panel, (x, y))
 
     # ---------------------------- public API ----------------------------
     def draw(self) -> None:
@@ -279,6 +367,8 @@ class MapManager:
         self.surface.fill(OCEAN)
         self.surface.blit(self._scaled_colored, self._dest_rect)
         self.surface.blit(self._scaled_borders, self._dest_rect)
+        mouse_pos = pygame.mouse.get_pos()
+        self.draw_hover_tooltip(self.surface, mouse_pos, self.tooltip_font)
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.VIDEORESIZE:
@@ -312,12 +402,15 @@ if __name__ == "__main__":
 
     def _run_demo() -> None:
         pygame.init()
+        tooltip_font = pygame.font.SysFont("consolas,menlo,dejavusansmono,monospace", 18)
         screen = pygame.display.set_mode((1280, 720), pygame.RESIZABLE)
         pygame.display.set_caption("MapManager Demo — click a country")
         blocs, countries = setup.init_countries_and_blocs()
 
         font = pygame.font.SysFont(None, 24)
         selected_text: Optional[str] = None
+        
+
 
         def on_click(c):
             nonlocal selected_text
@@ -335,7 +428,8 @@ if __name__ == "__main__":
                 selected_text = f"{getattr(c, 'name', str(c))} → {c.bloc}"
                 manager.recolor_after_bloc_change()
 
-        manager = MapManager(screen, countries, on_click=on_click)
+
+        manager = MapManager(screen, countries, tooltip_font, on_click=on_click)
 
         clock = pygame.time.Clock()
         running = True
@@ -346,6 +440,7 @@ if __name__ == "__main__":
                 manager.handle_event(event)
 
             manager.draw()
+            
             if selected_text:
                 txt = font.render(selected_text, True, (230, 230, 230))
                 screen.blit(txt, (20, 20))

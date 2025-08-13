@@ -1,16 +1,23 @@
 import pygame
-from typing import Callable, Optional, Tuple
+import random
+from typing import Callable, Optional, Tuple, Sequence
 
 Color = Tuple[int, int, int]
 
 # --------------------------------------------------
-# QUIZ POPUP V2 (Cold War aesthetic)
-# Changes from V1:
-# - Removed wrapper function (you'll call manager directly from GameState)
-# - Title no longer bold (for readability)
-# - "Click to continue" prompt moved BELOW panel so it never covers buttons
-# - Added effect text parameters for correct/incorrect outcomes; shown above
-#   the "Correct!/Incorrect" chip in FEEDBACK state.
+# QUIZ POPUP V3 (Cold War aesthetic, targeted answering)
+# --------------------------------------------------
+# UI is unchanged from V2. Behavioral upgrades:
+# - Only the *target country* may answer interactively when it is the
+#   currently playing country and NOT AI.
+# - If target is AI (or you force observer auto-answer), the UI shows for
+#   everyone, input is disabled, and a random answer is chosen after a
+#   short randomized delay. Then the current viewer clicks to dismiss.
+# - If target is another human (not the current player), the viewer sees
+#   the full UI but *cannot* interact. Use `force_answer(True/False)` from
+#   your multiplayer/netcode when the remote player answers; the viewer
+#   then clicks to dismiss.
+# - Callback still fires only after the popup is dismissed.
 # --------------------------------------------------
 
 
@@ -19,8 +26,15 @@ class QuizManager:
     ASKING = 1
     FEEDBACK = 2
 
-    def __init__(self, surface: pygame.Surface):
+    def __init__(self, surface: pygame.Surface, get_currently_playing: Callable[[], object]):
+        """
+        Args:
+            surface: Pygame surface to draw on.
+            get_currently_playing: Callable that returns the Country object
+                whose turn it is (must expose at least `.name` and `.is_ai`).
+        """
         self.surface = surface
+        self.get_currently_playing = get_currently_playing
         self.state = self.IDLE
 
         # Aesthetic colors (Cold War vibe)
@@ -62,6 +76,13 @@ class QuizManager:
         self._selected_yes: Optional[bool] = None
         self._is_correct: Optional[bool] = None
 
+        # Targeting / interactivity
+        self._target_country: Optional[object] = None
+        self._interactive: bool = False
+        self._observer_auto_answer: Optional[bool] = None
+        self._ai_delay_range_ms: Tuple[int, int] = (1200, 2600)
+        self._auto_timer_ms: int = -1
+
         # Prompt surf shown *below* panel in FEEDBACK
         self._result_prompt_surf: Optional[pygame.Surface] = None
         self._result_prompt_rect: Optional[pygame.Rect] = None
@@ -73,13 +94,32 @@ class QuizManager:
         self,
         question: str,
         correct_is_yes: bool,
+        target_country: object,
         on_result: Optional[Callable[[bool, bool, bool], None]] = None,
         *,
         effects_if_correct: str = "",
         effects_if_wrong: str = "",
+        ai_delay_range_ms: Sequence[int] = (1200, 2600),
+        observer_auto_answer: Optional[bool] = None,
     ) -> bool:
+        """
+        Launch the quiz.
+
+        Args:
+            question: The question text to display.
+            correct_is_yes: Whether YES is the correct answer.
+            target_country: Country object that should answer (must have `.is_ai` and `.name`).
+            on_result: Callback fired *after dismissal* with (selected_yes, correct_is_yes, is_correct).
+            effects_if_correct / effects_if_wrong: Effect description strings to show in FEEDBACK.
+            ai_delay_range_ms: (min, max) randomized delay before an AI/observer answer is chosen.
+            observer_auto_answer: If True, auto-answer even for non-AI observers; if False, wait for `force_answer()`.
+                                   If None, auto-answer only when target_country.is_ai is True.
+        Returns:
+            False if a quiz is already open; True otherwise.
+        """
         if self.state != self.IDLE:
             return False
+
         self.question = question
         self.correct_is_yes = bool(correct_is_yes)
         self.effects_if_correct = effects_if_correct
@@ -89,11 +129,43 @@ class QuizManager:
         self._is_correct = None
         self._result_prompt_surf = None
         self._result_prompt_rect = None
+
+        self._target_country = target_country
+        self._observer_auto_answer = observer_auto_answer
+        self._ai_delay_range_ms = (int(ai_delay_range_ms[0]), int(ai_delay_range_ms[1])) if ai_delay_range_ms else (1200, 2600)
+        self._auto_timer_ms = -1
+
+        # Determine interactivity by turn ownership
+        current = self.get_currently_playing() if self.get_currently_playing else None
+        is_current_player = (current is not None and target_country is current)
+        is_ai = bool(getattr(target_country, "is_ai", False))
+
+        # Interactive only if it's *their* turn and they are NOT AI
+        self._interactive = (is_current_player and not is_ai)
+
+        # If not interactive: decide whether to auto-answer or wait for an external force_answer
+        auto_for_observer = self._observer_auto_answer if self._observer_auto_answer is not None else is_ai
+        if not self._interactive and auto_for_observer:
+            self._auto_timer_ms = random.randint(self._ai_delay_range_ms[0], self._ai_delay_range_ms[1])
+        else:
+            self._auto_timer_ms = -1  # wait for force_answer()
+
         self.state = self.ASKING
         return True
 
     def is_active(self) -> bool:
         return self.state != self.IDLE
+
+    def force_answer(self, yes: bool) -> bool:
+        """Externally force an answer (useful for remote human player)."""
+        if self.state != self.ASKING:
+            return False
+        if self._interactive:
+            return False  # local player should click the buttons/keys
+        if self._selected_yes is not None:
+            return False  # already chosen
+        self._choose(bool(yes))
+        return True
 
     # ---------------- Events & Update ----------------
     def handle_event(self, event: pygame.event.Event):
@@ -105,30 +177,31 @@ class QuizManager:
             self.on_resize(event.size)
             return
 
-        if event.type == pygame.KEYDOWN and self.state == self.ASKING:
-            if event.key in (pygame.K_y, pygame.K_RETURN):
-                self._choose(True)
-            elif event.key in (pygame.K_n, pygame.K_ESCAPE):
-                self._choose(False)
-            return
-
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            mx, my = event.pos
-            if self.state == self.ASKING:
+        if self.state == self.ASKING and self._interactive:
+            if event.type == pygame.KEYDOWN:
+                if event.key in (pygame.K_y, pygame.K_RETURN):
+                    self._choose(True); return
+                elif event.key in (pygame.K_n, pygame.K_ESCAPE):
+                    self._choose(False); return
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mx, my = event.pos
                 if self.btn_yes_rect.collidepoint(mx, my):
-                    self._choose(True)
-                    return
+                    self._choose(True); return
                 if self.btn_no_rect.collidepoint(mx, my):
-                    self._choose(False)
-                    return
-            elif self.state == self.FEEDBACK:
-                # Click either on panel or the below-panel prompt to dismiss
+                    self._choose(False); return
+
+        if self.state == self.FEEDBACK:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mx, my = event.pos
                 if self.panel_rect.collidepoint(mx, my) or (self._result_prompt_rect and self._result_prompt_rect.collidepoint(mx, my)):
-                    self._finish()
-                return
+                    self._finish(); return
 
     def update(self, dt: float):
-        pass
+        if self.state == self.ASKING and not self._interactive and self._auto_timer_ms >= 0 and self._selected_yes is None:
+            self._auto_timer_ms -= int(dt * 1000)
+            if self._auto_timer_ms <= 0:
+                # Randomly pick True/False, 50/50
+                self._choose(bool(random.getrandbits(1)))
 
     # ---------------- Draw ----------------
     def draw(self):
@@ -148,8 +221,7 @@ class QuizManager:
 
         title = self.font_title.render("QUIZ TIME", True, (242, 240, 236))
         shadow = self.font_title.render("QUIZ TIME", True, (10, 10, 10))
-        trect = title.get_rect()
-        trect.center = (self.header_rect.centerx, self.header_rect.centery + 4)
+        trect = title.get_rect(); trect.center = (self.header_rect.centerx, self.header_rect.centery + 4)
         srect = trect.copy(); srect.x += 2; srect.y += 2
         self.surface.blit(shadow, srect)
         self.surface.blit(title, trect)
@@ -173,8 +245,9 @@ class QuizManager:
         self.btn_no_rect.topleft = (start_x + self.btn_yes_rect.w + btn_gap, btn_y)
 
         if self.state == self.ASKING:
-            self._draw_button(self.btn_yes_rect, "YES", self.col_btn_neutral, hover=True)
-            self._draw_button(self.btn_no_rect, "NO", self.col_btn_neutral, hover=True)
+            # Hover only when interactive; visuals unchanged otherwise
+            self._draw_button(self.btn_yes_rect, "YES", self.col_btn_neutral, hover=self._interactive)
+            self._draw_button(self.btn_no_rect, "NO", self.col_btn_neutral, hover=self._interactive)
         elif self.state == self.FEEDBACK:
             sel_yes = bool(self._selected_yes)
             is_corr = bool(self._is_correct)
@@ -184,16 +257,14 @@ class QuizManager:
             self._draw_button(self.btn_yes_rect, "YES", yes_col, hover=False)
             self._draw_button(self.btn_no_rect, "NO", no_col, hover=False)
 
-            # EFFECTS text (new): show above result chip
+            # EFFECTS text: show above result chip
             effects_text = self.effects_if_correct if is_corr else self.effects_if_wrong
             if effects_text:
                 et_lines = self._wrap_text("Effects: " + effects_text, self.font_effect, body_area.w)
                 ey = self.btn_yes_rect.top - 96
                 for ln in et_lines:
                     ets = self.font_effect.render(ln, True, self.col_text_main)
-                    etr = ets.get_rect()
-                    etr.centerx = self.panel_rect.centerx
-                    etr.top = ey
+                    etr = ets.get_rect(); etr.centerx = self.panel_rect.centerx; etr.top = ey
                     self.surface.blit(ets, etr)
                     ey += ets.get_height() + 4
 
@@ -203,18 +274,14 @@ class QuizManager:
             res = self.font_btn.render(result_txt, True, (245, 245, 245))
             res_bg = pygame.Surface((res.get_width() + 24, res.get_height() + 12))
             res_bg.fill(col)
-            res_rect = res_bg.get_rect()
-            res_rect.centerx = self.panel_rect.centerx
-            res_rect.top = self.btn_yes_rect.top - 56
+            res_rect = res_bg.get_rect(); res_rect.centerx = self.panel_rect.centerx; res_rect.top = self.btn_yes_rect.top - 56
             self.surface.blit(res_bg, res_rect)
             self.surface.blit(res, (res_rect.x + 12, res_rect.y + 6))
 
             # Click-to-continue prompt (below panel)
             if self._result_prompt_surf is None:
                 self._result_prompt_surf = self._make_prompt("Click to continue")
-                self._result_prompt_rect = self._result_prompt_surf.get_rect()
-                self._result_prompt_rect.centerx = self.panel_rect.centerx
-                self._result_prompt_rect.top = self.panel_rect.bottom + 16
+                self._result_prompt_rect = self._result_prompt_surf.get_rect(); self._result_prompt_rect.centerx = self.panel_rect.centerx; self._result_prompt_rect.top = self.panel_rect.bottom + 16
             self.surface.blit(self._result_prompt_surf, self._result_prompt_rect)
 
     # ---------------- Internals ----------------
@@ -238,6 +305,9 @@ class QuizManager:
         self._is_correct = None
         self._result_prompt_surf = None
         self._result_prompt_rect = None
+        self._target_country = None
+        self._interactive = False
+        self._auto_timer_ms = -1
         if cb:
             cb(selected_yes, correct_yes, is_correct)
 
@@ -322,62 +392,62 @@ class QuizManager:
         return pygame.font.SysFont(None, size, bold=bold)
 
 
-# ---------------- Demo ----------------
-
-def demo():
+# ---------------- Optional demo ----------------
+if __name__ == "__main__":
     pygame.init()
     screen = pygame.display.set_mode((1000, 660), pygame.RESIZABLE)
     clock = pygame.time.Clock()
-    pygame.display.set_caption("Quiz Popup V2 Demo — press Q to open; Y/N to answer")
 
-    mgr = QuizManager(screen)
+    class DummyCountry:
+        def __init__(self, name, is_ai):
+            self.name = name
+            self.is_ai = is_ai
+
+    # rotate current player among three for demonstration
+    players = [DummyCountry("USA", True), DummyCountry("USSR", True), DummyCountry("UK", False)]
+    cur_idx = 0
+
+    def get_current():
+        return players[cur_idx]
+
+    mgr = QuizManager(screen, get_current)
 
     def on_quiz_result(selected_yes: bool, correct_yes: bool, is_correct: bool):
         print(f"QUIZ RESULT → selected_yes={selected_yes} correct_yes={correct_yes} is_correct={is_correct}")
 
     running = True
-    font = pygame.font.SysFont("Segoe UI", 22)
-
-    sample_q = (
-        "The Cuban Missile Crisis (1962) ended with a public deal: the USSR removed its missiles from Cuba "
-        "and the US promised never to invade Cuba. True?"
-    )
+    pending_force = False
+    target = players[1]  # USSR
 
     while running:
         dt = clock.tick(60) / 1000.0
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE and not mgr.is_active():
+            elif e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_ESCAPE:
                     running = False
-                elif event.key == pygame.K_q and not mgr.is_active():
+                elif e.key == pygame.K_TAB:
+                    cur_idx = (cur_idx + 1) % len(players)
+                    print("Current:", players[cur_idx].name)
+                elif e.key == pygame.K_q and not mgr.is_active():
                     mgr.start_quiz(
-                        sample_q,
-                        True,
-                        on_quiz_result,
-                        effects_if_correct="DEFCON lowers by 1 (back-channel deal recognized)",
-                        effects_if_wrong="USA loses 20% PP (misread the settlement)",
+                        "Detente raised DEFCON by 3?",
+                        correct_is_yes=False,
+                        target_country=target,
+                        on_result=on_quiz_result,
+                        effects_if_correct="DEFCON remains unchanged.",
+                        effects_if_wrong="DEFCON raises by three levels.",
+                        observer_auto_answer=None,
                     )
-            mgr.handle_event(event)
+                    pending_force = True
+                elif e.key == pygame.K_f and mgr.is_active():
+                    mgr.force_answer(True)  # simulate remote answer
+            mgr.handle_event(e)
 
         mgr.update(dt)
         screen.fill((18, 18, 26))
-        y = 16
-        for line in [
-            "Press Q to open the QUIZ popup",
-            "Answer with mouse or Y/N; Click panel or the below prompt to continue",
-            "ESC to quit (when no popup is open)",
-        ]:
-            t = font.render(line, True, (235, 235, 240))
-            screen.blit(t, (16, y))
-            y += 28
-
         mgr.draw()
         pygame.display.flip()
 
     pygame.quit()
-
-
-if __name__ == "__main__":
-    demo()

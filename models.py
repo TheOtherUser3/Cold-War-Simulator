@@ -11,6 +11,7 @@ class Country:
         self.pending_bolster_reward = 0   # To be applied at start of next turn
         self.war_power = 15   
         self.free_war = False
+        self.is_ai = False #Whether AI or self/another player is playing
 
     def __repr__(self):
         return f"<Country {self.name} ({self.bloc}) PP:{self.pp}>"
