@@ -61,6 +61,8 @@ class TopBarManager:
         self.defcon = 5
         self.subject_name: Optional[str] = None
         self._bloc_name: Optional[str] = None
+        self._turn_skip: int = 0
+        self._arms_lock: int = 0
 
         # layout cache
         self._bar_rect = pygame.Rect(0, 0, *self.surface.get_size())
@@ -111,14 +113,16 @@ class TopBarManager:
             self.war_power = int(getattr(c, "war_power", 0))
             self.arms_tier = int(max(0, min(4, getattr(c, "arms_race", 0))))
             self.space_tier = int(max(0, min(4, getattr(c, "space_race", 0))))
+            self._turn_skip = int(getattr(c, "turn_skip", 0))
             self.subject_name = getattr(c, "name", None)
             bloc = getattr(c, "bloc", None)
             self._bloc_name = bloc if isinstance(bloc, str) else getattr(bloc, "name", None)
         else:
             self.pp = self.war_power = self.arms_tier = self.space_tier = 0
+            self._turn_skip = 0
             self.subject_name = None
 
-        # DEFCON from GameState (method if available, else field)
+        # DEFCON and Arms-lock from GameState
         get_def = getattr(self.game, "get_defcon", None)
         if callable(get_def):
             val = get_def()
@@ -128,6 +132,8 @@ class TopBarManager:
             self.defcon = int(max(1, min(5, val)))
         except Exception:
             self.defcon = 5
+
+        self._arms_lock = int(getattr(self.game, "arms_race_lock", 0))
 
     # -------------------------- Public API --------------------------
     def on_resize(self, size: Tuple[int, int]) -> None:
@@ -139,7 +145,8 @@ class TopBarManager:
         if event.type == pygame.MOUSEMOTION:
             self._update_hover(event.pos)
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if self._hit_arms.collidepoint(event.pos) and self.on_click_arms:
+            # disable arms click if locked
+            if self._hit_arms.collidepoint(event.pos) and self.on_click_arms and self._arms_lock <= 0:
                 self.on_click_arms(self.subject_name)
             elif self._hit_space.collidepoint(event.pos) and self.on_click_space:
                 self.on_click_space(self.subject_name)
@@ -152,11 +159,16 @@ class TopBarManager:
         x += 36
         x = self._draw_war_power(x)
         x += 36
-        x = self._draw_race(x, kind="Arms", tier=self.arms_tier, rect_store=self._hit_arms)
-        x += 24
+        arms_end_x = self._draw_race(x, kind="Arms", tier=self.arms_tier, rect_store=self._hit_arms)
+        if self._arms_lock > 0:
+            self._draw_arms_lock_overlay(self._hit_arms)
+        x = arms_end_x + 24
         x = self._draw_race(x, kind="Space", tier=self.space_tier, rect_store=self._hit_space)
         # right side: DEFCON
         self._draw_defcon()
+        # skip-turn stamp if needed
+        if self._turn_skip > 0:
+            self._draw_skip_stamp(self._turn_skip)
         self._draw_tooltip()
 
     # -------------------------- Layout/Drawing --------------------------
@@ -166,6 +178,7 @@ class TopBarManager:
         self._defcon_rect = pygame.Rect(w - box_w - 8, 8, box_w, self.HEIGHT - 16)
 
     def _draw_bar_bg(self) -> None:
+        # Background strip with subtle divider + shadow
         bar = pygame.Surface((self._bar_rect.w, self.HEIGHT), pygame.SRCALPHA)
         pygame.draw.rect(bar, PANEL, bar.get_rect())
         pygame.draw.line(bar, (255, 255, 255, 25), (0, self.HEIGHT - 1), (self._bar_rect.w, self.HEIGHT - 1))
@@ -176,7 +189,6 @@ class TopBarManager:
 
         if self.subject_name:
             chip = self._render_chip(self.subject_name, self._bloc_color_for_current())
-            # center the badge vertically within the bar
             cy = (self.HEIGHT - chip.get_height()) // 2
             self.surface.blit(chip, (12, cy))
 
@@ -259,7 +271,81 @@ class TopBarManager:
                 col = CYAN if kind == "Space" else YELLOW
                 pygame.draw.rect(self.surface, col, r.inflate(-4, -4), border_radius=4)
         return x + total_w
+
+    def _draw_arms_lock_overlay(self, rect: pygame.Rect) -> None:
+        """Draw a stronger lock: dim, diagonal X, and a center padlock.
+        Clicking is disabled elsewhere when _arms_lock > 0.
+        """
+        # Dim the area
+        overlay = pygame.Surface((rect.w, rect.h), pygame.SRCALPHA)
+        overlay.fill((10, 10, 12, 150))
+        self.surface.blit(overlay, rect.topleft)
     
+        # Diagonal X
+        pygame.draw.line(self.surface, (200, 200, 210), (rect.left + 2, rect.top + 2), (rect.right - 2, rect.bottom - 2), 2)
+        pygame.draw.line(self.surface, (200, 200, 210), (rect.left + 2, rect.bottom - 2), (rect.right - 2, rect.top + 2), 2)
+    
+        # Center padlock icon
+        cx = rect.centerx
+        cy = rect.centery
+        body_w, body_h = 18, 16
+        body = pygame.Rect(cx - body_w // 2, cy - body_h // 2 + 4, body_w, body_h)
+        pygame.draw.rect(self.surface, (220, 220, 230), body, 2, border_radius=3)
+        # shackle
+        pygame.draw.arc(self.surface, (220, 220, 230), (cx - 8, cy - 8, 16, 12), 3.14, 0, 2)
+    
+        # LOCKED text below
+        txt = self._font_small.render("LOCKED", True, (235, 235, 240))
+        tx = rect.centerx - txt.get_width() // 2
+        ty = rect.bottom + 2  # just above the metric labels line
+        self.surface.blit(txt, (tx, max(0, ty - self.HEIGHT + rect.height)))
+
+
+    def _draw_skip_stamp(self, turns_left: int) -> None:
+        """Render a prominent red banner to the RIGHT of the Arms/Space tracks.
+        Vertically centered in the HUD. Uses dynamic width to fit the label.
+        """
+        label = "TURN SKIPPED"
+        ts = self._font_small.render(label, True, (245, 245, 245))
+    
+        # Compute anchor just to the right of the rightmost race track
+        right_of_arms = getattr(self, "_hit_arms", None)
+        right_of_space = getattr(self, "_hit_space", None)
+        anchor_x = 24  # fallback padding if rects are missing
+        if right_of_arms and right_of_space:
+            anchor_x = max(right_of_arms.right, right_of_space.right) + 20
+        elif right_of_arms:
+            anchor_x = right_of_arms.right + 16
+        elif right_of_space:
+            anchor_x = right_of_space.right + 16
+    
+        pad_x, pad_y = 12, 6
+        w = ts.get_width() + pad_x * 2 + 18
+        h = max(26, ts.get_height() + pad_y * 2)
+        y = (self.HEIGHT - h) // 2
+    
+        # Banner surface
+        surf = pygame.Surface((w, h), pygame.SRCALPHA)
+        rect = surf.get_rect()
+        # Red pill with subtle border
+        pygame.draw.rect(surf, (175, 45, 45, 230), rect, border_radius=10)
+        pygame.draw.rect(surf, (255, 255, 255, 90), rect, 1, border_radius=10)
+    
+        # Warning triangle at left
+        tri_x = 10
+        tri = [(tri_x, h//2 - 6), (tri_x + 10, h//2 - 6), (tri_x + 5, h//2 + 6)]
+        pygame.draw.polygon(surf, (255, 220, 120), tri)
+        pygame.draw.polygon(surf, (60, 40, 20), tri, 1)
+        # Exclamation
+        pygame.draw.line(surf, (60, 40, 20), (tri_x + 5, h//2 - 3), (tri_x + 5, h//2 + 2), 2)
+        pygame.draw.circle(surf, (60, 40, 20), (tri_x + 5, h//2 + 5), 1)
+    
+        # Text
+        surf.blit(ts, (pad_x + 14, (h - ts.get_height()) // 2))
+    
+        # Blit to main surface
+        self.surface.blit(surf, (anchor_x, y))
+
     def _draw_defcon(self) -> None:
         box = self._defcon_rect
         pygame.draw.rect(self.surface, (38, 46, 62), box, border_radius=10)
@@ -269,7 +355,7 @@ class TopBarManager:
         y = box.y + 6 + title.get_height() + 4
         size = 20
         gap = 8
-    
+
         # draw 5 squares labeled 5..1 left->right (safe -> danger)
         squares = []
         for i, lvl in enumerate([5, 4, 3, 2, 1]):
@@ -278,14 +364,14 @@ class TopBarManager:
             base_col = (64, 76, 96)
             pygame.draw.rect(self.surface, base_col, r, border_radius=6)
             pygame.draw.rect(self.surface, (255, 255, 255, 30), r, 1, border_radius=6)
-    
+
         cur_rect = None
         for r, lvl in squares:
             if lvl == self.defcon:
                 cur_rect = r
                 break
         if cur_rect:
-            # danger line should fill everything to the LEFT of the current box
+            # danger line to the LEFT of the current box
             left_start = box.x + 12
             danger_rect = pygame.Rect(
                 left_start,
@@ -295,7 +381,7 @@ class TopBarManager:
             )
             if danger_rect.w > 0:
                 pygame.draw.rect(self.surface, (160, 50, 50), danger_rect, border_radius=3)
-    
+
         for r, lvl in squares:
             if lvl == self.defcon:
                 fill = self._defcon_color(lvl)
@@ -307,11 +393,11 @@ class TopBarManager:
                 else:
                     shade = (72, 80, 96)
                 pygame.draw.rect(self.surface, shade, r.inflate(-6, -6), border_radius=4)
-    
+
         num = self._font_big.render(str(self.defcon), True, (236, 241, 246))
         self.surface.blit(num, (box.right - num.get_width() - 16, box.y + (box.h - num.get_height()) // 2))
         self._hit_defcon = box.copy()
-    
+
     def _defcon_color(self, lvl: int) -> tuple[int, int, int]:
         palette_by_level = {
             5: GREEN,
@@ -321,8 +407,8 @@ class TopBarManager:
             1: RED,
         }
         return palette_by_level[max(1, min(5, int(lvl)))]
-    
-        # -------------------------- Hover Help --------------------------
+
+    # -------------------------- Hover Help --------------------------
     def _update_hover(self, mouse: Tuple[int, int]) -> None:
         self._hover = None
         if self._hit_pp.collidepoint(mouse):
@@ -330,7 +416,10 @@ class TopBarManager:
         elif self._hit_war.collidepoint(mouse):
             self._hover = ("War Power — modifies war odds and outcomes.", mouse)
         elif self._hit_arms.collidepoint(mouse):
-            self._hover = ("Arms Race — click to open upgrade menu.", mouse)
+            if self._arms_lock > 0:
+                self._hover = (f"Arms Race — LOCKED for {self._arms_lock} turns.", mouse)
+            else:
+                self._hover = ("Arms Race — click to open upgrade menu.", mouse)
         elif self._hit_space.collidepoint(mouse):
             self._hover = ("Space Race — click to open upgrade menu.", mouse)
         elif self._hit_defcon.collidepoint(mouse):
@@ -372,7 +461,6 @@ class TopBarManager:
     def _bloc_color_for_current(self) -> Tuple[int, int, int]:
         name = (self._bloc_name or "").strip()
         return BLOC_COLORS.get(name, BLOC_COLORS["Non-Aligned"])
-
 
 # -------------------------- Demo (TopBar + Map) --------------------------
 # This demo shows the HUD pinned at the top and the MapManager below it. Clicking a country
@@ -428,6 +516,8 @@ if __name__ == "__main__":
                 Game.country("USSR").arms_race = 3
                 Game.country("USSR").space_race = 2
                 Game.country("USSR").pp = 100
+                Game.country("USSR").turn_skip = 3
+                Game.arms_race_lock = 3
                 Game.defcon = 2
 
 

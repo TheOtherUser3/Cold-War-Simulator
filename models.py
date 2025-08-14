@@ -6,12 +6,13 @@ class Country:
         self.bloc = bloc_name  # 'NATO', 'Warsaw Pact', or 'Non-Aligned'
         self.pp = pp
         self.pending_pp = 0 # To be applied at end of turn
-        self.arms_race = 0  # 0-4
-        self.space_race = 0  # 0-4
+        self.arms_race = 0  # 0-5
+        self.space_race = 0  # 0-5
         self.pending_bolster_reward = 0   # To be applied at start of next turn
         self.war_power = 15   
         self.free_war = False
         self.is_ai = False #Whether AI or self/another player is playing
+        self.turn_skip = 0 #Great Leap Forward Event Card skips China's turn, number indicates number of turns, 3 per round, set to 3
 
     def __repr__(self):
         return f"<Country {self.name} ({self.bloc}) PP:{self.pp}>"

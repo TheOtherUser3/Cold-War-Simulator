@@ -8,6 +8,8 @@ from spinner import Spinner, SpinnerManager, OPTIONS
 from War import WarManager
 from coin import CoinManager, Coin
 from quiz import QuizManager
+from card import CardDrawManager
+from discount import OfferManager
 
 
 COUP_DIE = Dice([
@@ -63,6 +65,7 @@ class GameState:
         self.blocs = blocs
         self.countries = countries
         self.victory = None
+        self.arms_race_lock = 0 #Cuban Missile Crisis Event Card, nobody can buy for one round, number indicates number of turns, 3 per round, set to 3
         self.currently_playing = currently_playing
         self.action_log = []
         self.screen = screen
@@ -70,6 +73,9 @@ class GameState:
         self.dice_mgr = DiceManager(screen)
         self.coin_mgr = CoinManager(self.screen)
         self.quiz_mgr = QuizManager(self.screen, self.get_currently_playing)
+        self.card_mgr = CardDrawManager(self.screen)
+        self.offer_mgr = OfferManager(self.screen)
+
 
 
         # Phases state
@@ -554,6 +560,87 @@ class GameState:
             self.waroutcome_die(actor, target)
     
         self.war_mgr = WarManager(self.screen, attacker, defender, fonts, on_result=on_war_finished)
+    
+    def draw_card_defcon(self, aces_delta: int, kings_delta: int):
+        def _on(card):
+            if card.rank == "A":
+                self.change_defcon(aces_delta)
+                self.action_log.append("ACE drawn — DEFCON -1")
+            elif card.rank == "K":
+                self.change_defcon(kings_delta)
+                self.action_log.append("KING drawn — DEFCON +1")
+            else:
+                self.action_log.append(f"{card.rank}{card.suit} drawn — no effect")
+        self.card_mgr.start_draw(on_result=_on, title="DEFCON DRAW")
+    
+    
+    def _race_tier_get(self, actor, subject: str) -> int:
+        return actor.arms_race if subject == "arms_race" else actor.space_race
+    
+    def _race_tier_set(self, actor, subject: str, val: int) -> None:
+        if subject == "arms_race":
+            actor.arms_race = val
+        else:
+            actor.space_race = val
+        
+    def offer_race_discount(self, actor, subject: str, discount: float = 0.5,
+                            title: str | None = None, question: str | None = None,
+                            costs_override: list[int] | None = None) -> bool:
+        """
+        Offer to buy the *next* tier at a discount. YES is auto-disabled if actor lacks PP or is max tier.
+        On accept: deduct PP, +1 tier, append log.
+        """
+    
+        def _on(accepted: bool, price: int) -> None:
+            if not accepted:
+                return
+            # spend and advance
+            actor.pp -= price
+            new_tier = min(5, self._race_tier_get(actor, subject) + 1)
+            self._race_tier_set(actor, subject, new_tier)
+            self.action_log.append(
+                f"{actor.name} purchased discounted {('Arms' if subject=='arms_race' else 'Space')} Race tier {new_tier} for {price} PP."
+            )
+    
+        return self.offer_mgr.start_offer(
+            actor,
+            subject,
+            mode="discount_next_tier",
+            discount=discount,
+            title=title,
+            question=question,
+            costs_override=costs_override,
+            on_result=_on,
+        )
+    
+    def offer_race_fixed_to_tier(self, actor, subj: str, target_tier: int, price: int,
+                                 title: str | None = None, question: str | None = None) -> bool:
+        """
+        Offer to pay a fixed price to reach target_tier (jump up if below).
+        On accept: deduct PP, set tier = max(current, target_tier) capped at 4, append log.
+        """
+    
+        def _on(accepted: bool, paid: int) -> None:
+            if not accepted:
+                return
+            actor.pp -= paid
+            cur = self._race_tier_get(actor, subj)
+            new_tier = min(5, max(cur, int(target_tier)))
+            self._race_tier_set(actor, subj, new_tier)
+            self.action_log.append(
+                f"{actor.name} paid {paid} PP to reach {('Arms' if subj=='arms_race' else 'Space')} Race tier {new_tier}."
+            )
+    
+        return self.offer_mgr.start_offer(
+            actor,
+            subject=subj,
+            mode="fixed_purchase_to_tier",
+            price=int(price),
+            target_tier=int(target_tier),
+            title=title,
+            question=question,
+            on_result=_on,
+        )
         
     def country(self, name):
         """To be used externally to extract a country object by name e.g. 'USA' or 'Brazil'"""
