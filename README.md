@@ -4,7 +4,7 @@ Educational Turn Based Cold War Simulation Game made in Python with Pygame.
 ## Click below for game instructions
 https://docs.google.com/document/d/1CMXRgWiSTfkrqeWKXCvu6qHbm-GtfRrw/edit
 
-# In Depelopment
+# In Development
 ## Progress
 ### Current Features Implemented
 -Most UI's
@@ -30,5 +30,5 @@ https://docs.google.com/document/d/1CMXRgWiSTfkrqeWKXCvu6qHbm-GtfRrw/edit
 -Music (when my client gets it to me)
 
 # Expected Finish Time
-1-2 months (as of 12/5/2025)
+1-2 months (as of 12/5/2025) \n
 (UI's are bulk of the work, and they are mostly finished)
