@@ -30,5 +30,6 @@ https://docs.google.com/document/d/1CMXRgWiSTfkrqeWKXCvu6qHbm-GtfRrw/edit
 -Music (when my client gets it to me)
 
 # Expected Finish Time
-1-2 months (as of 12/5/2025) \n
-(UI's are bulk of the work, and they are mostly finished)
+1-2 months (as of 12/5/2025)   
+(UI's are bulk of the work, and they are mostly finished)   
+Put on hold due to schoolwork.  Planning to finish over intersession.
