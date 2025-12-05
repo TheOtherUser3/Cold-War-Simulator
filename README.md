@@ -7,26 +7,26 @@ https://docs.google.com/document/d/1CMXRgWiSTfkrqeWKXCvu6qHbm-GtfRrw/edit
 # In Development
 ## Progress
 ### Current Features Implemented
--Most UI's
--Map
--Top Game Bar
--Most core game features
--Event Card Effects
--Dice rolls, Spinning Wheel popups, and all logic regarding them
--War
+-Most UI's  
+-Map  
+-Top Game Bar  
+-Most core game features  
+-Event Card Effects  
+-Dice rolls, Spinning Wheel popups, and all logic regarding them  
+-War  
 
 ### In Progress
--Remaining core UI's
--Current Event Card Logic
+-Remaining core UI's  
+-Current Event Card Logic  
 
 ### To Do
--Final round logic to tie everything together
--AI logic
--State Sponsored Terrorism + Espionage
--Rolling turn summary
--Game over logic + screen
--War 'volunteer' popups + logic
--Multiplayer
+-Final round logic to tie everything together    
+-AI logic  
+-State Sponsored Terrorism + Espionage  
+-Rolling turn summary  
+-Game over logic + screen  
+-War 'volunteer' popups + logic  
+-Multiplayer  
 -Music (when my client gets it to me)
 
 # Expected Finish Time
